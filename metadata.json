@@ -1,0 +1,6 @@
+{
+  "name": "Cerrado Stay - Gestão & Reserva de Imóveis por Temporada",
+  "description": "Especialista em gestão de imóveis por temporada em Palmas-TO. Maximize sua rentabilidade com hospitalidade de excelência.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
