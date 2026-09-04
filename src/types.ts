@@ -23,6 +23,8 @@ export interface PropertyReview {
   rating: number;
   date: string;
   comment: string;
+  status?: 'approved' | 'hidden';
+  createdAt?: string;
 }
 
 export type PropertyStatus = 'active' | 'inactive';

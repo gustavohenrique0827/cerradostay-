@@ -26,9 +26,20 @@ import {
   Sliders,
   CheckCheck,
   Eye,
-  EyeOff
+  EyeOff,
+  Navigation,
+  ExternalLink,
+  Compass
 } from 'lucide-react';
 import { Property, PropertyCategory, PropertyStatus } from '../../types';
+import { 
+  Coordinates, 
+  PALMAS_REGIONS, 
+  resolvePalmasCoordinates, 
+  getGoogleMapsSearchUrl, 
+  getGoogleMapsDirectionsUrl,
+  getGoogleMapsEmbedUrl 
+} from '../../utils/geoUtils';
 
 interface AdminPropertyFormProps {
   property?: Property | null; // If null, mode is create
@@ -87,6 +98,23 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
   const [city, setCity] = useState(property?.city || 'Palmas');
   const [state, setState] = useState(property?.state || 'TO');
   const [status, setStatus] = useState<PropertyStatus>(property?.status || 'active');
+
+  // Coordinates State for real-time Google Maps
+  const [coordinates, setCoordinates] = useState<Coordinates>(() => {
+    if (property?.coordinates && Number.isFinite(property.coordinates.lat) && Number.isFinite(property.coordinates.lng)) {
+      return property.coordinates;
+    }
+    return resolvePalmasCoordinates(`${property?.name || ''} ${property?.location || ''} ${property?.neighborhood || ''} ${property?.address || ''}`);
+  });
+  const [isManualCoords, setIsManualCoords] = useState<boolean>(false);
+
+  // Auto-update coordinates based on location/address when not manually overridden
+  useEffect(() => {
+    if (!isManualCoords) {
+      const resolved = resolvePalmasCoordinates(`${name} ${location} ${neighborhood} ${address}`);
+      setCoordinates(resolved);
+    }
+  }, [name, location, neighborhood, address, isManualCoords]);
 
   const [categories, setCategories] = useState<PropertyCategory[]>(
     property?.category || ['apartamentos']
@@ -424,6 +452,10 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
       checkInTime,
       checkOutTime,
       houseRules,
+      coordinates: {
+        lat: Number(coordinates.lat) || -10.1837,
+        lng: Number(coordinates.lng) || -48.3582,
+      },
     };
 
     onSave(payload);
@@ -796,6 +828,134 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
                         placeholder="TO"
                         className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-xs text-neutral-900 bg-neutral-50 focus:bg-white focus:outline-hidden focus:border-[#C5A059]"
                       />
+                    </div>
+                  </div>
+
+                  {/* Localização GPS & Google Maps (Tempo Real) */}
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#FBF7EF] to-white border border-[#C5A059]/30 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-[#C5A059]">
+                        <Compass className="w-4 h-4" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-neutral-900">
+                          Google Maps & Localização em Tempo Real
+                        </span>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        isManualCoords ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {isManualCoords ? 'Coordenadas Manuais' : 'Auto-detectado'}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-neutral-600 leading-relaxed">
+                      O mapa e o botão de rota no site direcionam o hóspede <strong>exatamente para este local</strong> no Google Maps. Escolha uma região rápida abaixo ou ajuste as coordenadas:
+                    </p>
+
+                    {/* Quick Region Chips */}
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block mb-1.5">
+                        Regiões e Pontos Rápidos de Palmas:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {PALMAS_REGIONS.map((reg) => {
+                          const isSelected = Math.abs(coordinates.lat - reg.coordinates.lat) < 0.001 && Math.abs(coordinates.lng - reg.coordinates.lng) < 0.001;
+                          return (
+                            <button
+                              key={reg.id}
+                              type="button"
+                              onClick={() => {
+                                setCoordinates(reg.coordinates);
+                                setIsManualCoords(true);
+                                if (!location) setLocation(reg.name);
+                              }}
+                              className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border transition-all cursor-pointer flex items-center gap-1 ${
+                                isSelected
+                                  ? 'bg-[#00152B] text-white border-[#00152B] shadow-xs'
+                                  : 'bg-white text-neutral-700 border-neutral-200 hover:border-[#C5A059] hover:bg-[#FBF7EF]'
+                              }`}
+                            >
+                              <MapPin className="w-2.5 h-2.5 text-[#C5A059]" />
+                              {reg.shortLabel}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Coordinates Inputs */}
+                    <div className="grid grid-cols-2 gap-2.5 pt-1">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
+                          Latitude (GPS)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.000001"
+                          value={coordinates.lat}
+                          onChange={(e) => {
+                            setCoordinates((prev) => ({ ...prev, lat: parseFloat(e.target.value) || 0 }));
+                            setIsManualCoords(true);
+                          }}
+                          className="w-full px-3 py-1.5 rounded-lg border border-neutral-200 text-xs text-neutral-900 bg-white font-mono focus:border-[#C5A059] focus:outline-hidden"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-1">
+                          Longitude (GPS)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.000001"
+                          value={coordinates.lng}
+                          onChange={(e) => {
+                            setCoordinates((prev) => ({ ...prev, lng: parseFloat(e.target.value) || 0 }));
+                            setIsManualCoords(true);
+                          }}
+                          className="w-full px-3 py-1.5 rounded-lg border border-neutral-200 text-xs text-neutral-900 bg-white font-mono focus:border-[#C5A059] focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Map Preview & Direct Testing Buttons */}
+                    <div className="space-y-2 pt-1">
+                      <div className="relative w-full h-32 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-100">
+                        <iframe
+                          title="Prévia do Mapa"
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          src={getGoogleMapsEmbedUrl(coordinates.lat, coordinates.lng)}
+                        />
+                        <div className="absolute top-1.5 left-1.5 bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded text-[9px] font-bold text-neutral-800 shadow-xs">
+                          Prévia do Pin
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={getGoogleMapsSearchUrl(coordinates.lat, coordinates.lng, name || location)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 py-1.5 px-2.5 rounded-lg bg-white border border-[#C5A059]/40 text-[#C5A059] hover:bg-[#FBF7EF] text-[11px] font-bold text-center flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
+                        >
+                          <Navigation className="w-3 h-3" />
+                          Testar no Google Maps
+                          <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const resolved = resolvePalmasCoordinates(`${name} ${location} ${neighborhood} ${address}`);
+                            setCoordinates(resolved);
+                            setIsManualCoords(false);
+                            onToast('Coordenadas recalculadas com base no nome e endereço.', 'info');
+                          }}
+                          className="py-1.5 px-2.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-[11px] font-semibold transition-colors"
+                        >
+                          Redetectar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

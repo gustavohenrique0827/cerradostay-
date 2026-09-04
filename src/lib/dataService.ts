@@ -1,5 +1,6 @@
 import { getSupabase } from './supabase';
-import { Property, PropertyCategory, PropertyStatus, PropertyUnavailability } from '../types';
+import { Property, PropertyCategory, PropertyStatus, PropertyUnavailability, PropertyReview } from '../types';
+import { resolvePalmasCoordinates } from '../utils/geoUtils';
 
 export const INITIAL_PROPERTIES: Property[] = [
   {
@@ -52,7 +53,7 @@ export const INITIAL_PROPERTIES: Property[] = [
         comment: 'A casa é simplesmente deslumbrante! Fotos reais e idênticas ao local. O pôr do sol no lago de Palmas visto da piscina é inesquecível.'
       }
     ],
-    coordinates: { lat: -10.184, lng: -48.333 },
+    coordinates: { lat: -10.1837, lng: -48.3582 },
     createdAt: '2026-01-15T10:00:00.000Z'
   }
 ];
@@ -192,9 +193,14 @@ export function validateAndSanitizeProperty(raw: any): PropertyValidationResult 
     ? raw.houseRules.filter((r: any) => typeof r === 'string' && r.trim().length > 0).map((r: string) => r.trim())
     : [];
 
-  const coordinates = (raw.coordinates && typeof raw.coordinates === 'object' && Number.isFinite(raw.coordinates.lat) && Number.isFinite(raw.coordinates.lng))
+  const rawCoords = (raw.coordinates && typeof raw.coordinates === 'object' && Number.isFinite(raw.coordinates.lat) && Number.isFinite(raw.coordinates.lng))
     ? { lat: Number(raw.coordinates.lat), lng: Number(raw.coordinates.lng) }
-    : { lat: -10.184, lng: -48.333 };
+    : null;
+
+  const coordinates = resolvePalmasCoordinates(
+    `${name} ${location} ${raw.neighborhood || ''} ${raw.address || ''}`,
+    rawCoords
+  );
 
   const sanitized: Property = {
     id,
@@ -856,5 +862,145 @@ export function subscribeToProperties(callback: (payload: any) => void) {
     };
   } catch {
     return null;
+  }
+}
+
+/**
+ * Adds a new review to a property, updates rating/reviewsCount, and saves changes atomically.
+ */
+export async function addPropertyReview(
+  propertyId: string,
+  reviewData: {
+    authorName: string;
+    authorLocation?: string;
+    rating: number;
+    comment: string;
+  }
+): Promise<{ success: boolean; property?: Property; error?: string }> {
+  try {
+    const properties = await fetchProperties();
+    const property = properties.find((p) => p.id === propertyId);
+    if (!property) {
+      return { success: false, error: 'Imóvel não encontrado.' };
+    }
+
+    const newReview: PropertyReview = {
+      id: `rev-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      authorName: reviewData.authorName.trim(),
+      authorLocation: (reviewData.authorLocation && reviewData.authorLocation.trim()) || 'Hóspede Verificado',
+      authorAvatar: `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random() * 500)}?auto=format&fit=crop&w=150&q=80`,
+      rating: Math.max(1, Math.min(5, Math.round(reviewData.rating))),
+      date: new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date()),
+      comment: reviewData.comment.trim(),
+      status: 'approved',
+      createdAt: new Date().toISOString(),
+    };
+
+    const currentReviews = Array.isArray(property.reviews) ? property.reviews : [];
+    const updatedReviews = [newReview, ...currentReviews];
+
+    const visibleReviews = updatedReviews.filter((r) => r.status !== 'hidden');
+    const totalRating = visibleReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
+    const newAverage = visibleReviews.length > 0
+      ? Number((totalRating / visibleReviews.length).toFixed(2))
+      : 5;
+
+    const updatedProperty: Property = {
+      ...property,
+      reviews: updatedReviews,
+      reviewsCount: visibleReviews.length,
+      rating: newAverage,
+    };
+
+    const saveRes = await saveProperty(updatedProperty);
+    return { success: saveRes.success, property: updatedProperty, error: saveRes.error };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erro ao adicionar avaliação.' };
+  }
+}
+
+/**
+ * Permanently deletes a review from a property and recalculates ratings.
+ */
+export async function deletePropertyReview(
+  propertyId: string,
+  reviewId: string
+): Promise<{ success: boolean; property?: Property; error?: string }> {
+  try {
+    const properties = await fetchProperties();
+    const property = properties.find((p) => p.id === propertyId);
+    if (!property) {
+      return { success: false, error: 'Imóvel não encontrado.' };
+    }
+
+    const currentReviews = Array.isArray(property.reviews) ? property.reviews : [];
+    const updatedReviews = currentReviews.filter((r) => r.id !== reviewId);
+
+    const visibleReviews = updatedReviews.filter((r) => r.status !== 'hidden');
+    const totalRating = visibleReviews.length > 0
+      ? visibleReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0)
+      : 5;
+    const newAverage = visibleReviews.length > 0
+      ? Number((totalRating / visibleReviews.length).toFixed(2))
+      : 5;
+
+    const updatedProperty: Property = {
+      ...property,
+      reviews: updatedReviews,
+      reviewsCount: visibleReviews.length,
+      rating: newAverage,
+    };
+
+    const saveRes = await saveProperty(updatedProperty);
+    return { success: saveRes.success, property: updatedProperty, error: saveRes.error };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erro ao excluir avaliação.' };
+  }
+}
+
+/**
+ * Toggles a review visibility status ('approved' <-> 'hidden') without deleting it.
+ */
+export async function togglePropertyReviewStatus(
+  propertyId: string,
+  reviewId: string
+): Promise<{ success: boolean; property?: Property; error?: string }> {
+  try {
+    const properties = await fetchProperties();
+    const property = properties.find((p) => p.id === propertyId);
+    if (!property) {
+      return { success: false, error: 'Imóvel não encontrado.' };
+    }
+
+    const currentReviews = Array.isArray(property.reviews) ? property.reviews : [];
+    const updatedReviews = currentReviews.map((r) => {
+      if (r.id === reviewId) {
+        return {
+          ...r,
+          status: (r.status === 'hidden' ? 'approved' : 'hidden') as 'approved' | 'hidden',
+        };
+      }
+      return r;
+    });
+
+    const visibleReviews = updatedReviews.filter((r) => r.status !== 'hidden');
+    const totalRating = visibleReviews.length > 0
+      ? visibleReviews.reduce((sum, r) => sum + (Number(r.rating) || 5), 0)
+      : 5;
+    const newAverage = visibleReviews.length > 0
+      ? Number((totalRating / visibleReviews.length).toFixed(2))
+      : 5;
+
+    const updatedProperty: Property = {
+      ...property,
+      reviews: updatedReviews,
+      reviewsCount: visibleReviews.length,
+      rating: newAverage,
+    };
+
+    const saveRes = await saveProperty(updatedProperty);
+    return { success: saveRes.success, property: updatedProperty, error: saveRes.error };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Erro ao atualizar status da avaliação.' };
   }
 }

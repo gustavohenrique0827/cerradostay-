@@ -14,12 +14,13 @@ import {
   Plus,
   Home,
   ChevronRight,
-  UserCheck
+  UserCheck,
+  MessageSquareQuote
 } from 'lucide-react';
 import { BRAND_CONFIG } from '../../config';
 import { CerradoLogo } from '../CerradoLogo';
 
-export type AdminTab = 'dashboard' | 'properties' | 'availability' | 'settings';
+export type AdminTab = 'dashboard' | 'properties' | 'availability' | 'reviews' | 'settings';
 
 interface AdminLayoutProps {
   currentTab: AdminTab;
@@ -45,6 +46,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'dashboard', label: 'Dashboard', shortLabel: 'Início', icon: LayoutDashboard },
     { id: 'properties', label: 'Imóveis', shortLabel: 'Imóveis', icon: Building2 },
     { id: 'availability', label: 'Disponibilidade', shortLabel: 'Calendário', icon: Calendar },
+    { id: 'reviews', label: 'Avaliações', shortLabel: 'Avaliações', icon: MessageSquareQuote },
     { id: 'settings', label: 'Configurações', shortLabel: 'Ajustes', icon: SettingsIcon },
   ];
 
@@ -56,6 +58,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         return 'Gestão do Portfólio de Imóveis';
       case 'availability':
         return 'Calendário & Disponibilidade';
+      case 'reviews':
+        return 'Gestão de Avaliações dos Hóspedes';
       case 'settings':
         return 'Configurações do Sistema';
       default:
@@ -71,6 +75,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         return 'Cadastro, edição, fotos e status dos imóveis';
       case 'availability':
         return 'Bloqueios, reservas e controle de datas';
+      case 'reviews':
+        return 'Moderação de comentários e notas de 1 a 5 estrelas';
       case 'settings':
         return 'Backups atômicos, relatórios e dados do sistema';
       default:

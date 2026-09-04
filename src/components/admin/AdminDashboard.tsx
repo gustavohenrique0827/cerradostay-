@@ -44,7 +44,7 @@ import { exportAdminDashboardPDF } from '../../utils/pdfExport';
 interface AdminDashboardProps {
   properties: Property[];
   unavailabilities: PropertyUnavailability[];
-  onNavigateTab: (tab: 'properties' | 'availability' | 'settings') => void;
+  onNavigateTab: (tab: 'properties' | 'availability' | 'reviews' | 'settings') => void;
   onAddProperty: () => void;
   onManagePropertyAvailability: (propertyId: string) => void;
   onEditProperty: (property: Property) => void;

@@ -6,12 +6,15 @@ import {
   ShieldCheck, Sparkles, Check, Copy, Wifi, Wind, Tv, 
   Utensils, Waves, Car, Shirt, Eye, Key, Dog, Coffee, Laptop, 
   Flame, Dumbbell, Calendar, Clock, ChevronRight, MessageCircle, Lock,
-  ShoppingCart, Fuel, Scissors, ShoppingBag, Navigation
+  ShoppingCart, Fuel, Scissors, ShoppingBag, Navigation, ExternalLink,
+  MessageSquareQuote, Send, CheckCircle2, ThumbsUp
 } from 'lucide-react';
 import { AvailabilityCalendar } from './AvailabilityCalendar';
 import { PropertyGalleryModal } from './PropertyGalleryModal';
 import { BookingModal } from './BookingModal';
 import { BRAND_CONFIG, getPropertyWhatsAppBookingUrl } from '../config';
+import { getGoogleMapsSearchUrl, getGoogleMapsDirectionsUrl, getGoogleMapsEmbedUrl } from '../utils/geoUtils';
+import { addPropertyReview } from '../lib/dataService';
 
 interface PropertyDetailViewProps {
   property: Property;
@@ -21,6 +24,7 @@ interface PropertyDetailViewProps {
   isFavorite?: boolean;
   onToggleFavorite?: (id: string) => void;
   onToast: (msg: string) => void;
+  onUpdateProperty?: (updated: Property) => void;
 }
 
 const iconAmenityMap: Record<string, any> = {
@@ -51,7 +55,13 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
   isFavorite = false,
   onToggleFavorite,
   onToast,
+  onUpdateProperty,
 }) => {
+  const [currentProperty, setCurrentProperty] = useState<Property>(property);
+  useEffect(() => {
+    setCurrentProperty(property);
+  }, [property]);
+
   const [checkIn, setCheckIn] = useState<string | null>(null);
   const [checkOut, setCheckOut] = useState<string | null>(null);
   const [adults, setAdults] = useState<number>(2);
@@ -61,6 +71,49 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
   const [galleryStartIndex, setGalleryStartIndex] = useState(0);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+
+  // Review Form State
+  const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
+  const [reviewAuthorName, setReviewAuthorName] = useState('');
+  const [reviewAuthorLocation, setReviewAuthorLocation] = useState('');
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewHoverRating, setReviewHoverRating] = useState<number>(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewAuthorName.trim()) {
+      onToast('Por favor, informe seu nome para a avaliação.');
+      return;
+    }
+    if (!reviewComment.trim() || reviewComment.trim().length < 5) {
+      onToast('Por favor, escreva um comentário de pelo menos 5 caracteres.');
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    const res = await addPropertyReview(currentProperty.id, {
+      authorName: reviewAuthorName,
+      authorLocation: reviewAuthorLocation.trim() || 'Hóspede Verificado',
+      rating: reviewRating,
+      comment: reviewComment,
+    });
+    setIsSubmittingReview(false);
+
+    if (res.success && res.property) {
+      setCurrentProperty(res.property);
+      onUpdateProperty?.(res.property);
+      onToast('Sua avaliação foi enviada com sucesso! Muito obrigado.');
+      setReviewAuthorName('');
+      setReviewAuthorLocation('');
+      setReviewRating(5);
+      setReviewComment('');
+      setIsReviewFormOpen(false);
+    } else {
+      onToast(res.error || 'Erro ao enviar avaliação.');
+    }
+  };
 
   // Scroll to top when property changes
   useEffect(() => {
@@ -424,41 +477,76 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
             {/* Location & Map Section */}
             <div className="bg-white rounded-2xl border border-[#DEE2E6] shadow-2xs overflow-hidden">
               {/* Header */}
-              <div className="p-6 sm:p-8 pb-4">
-                <div className="flex items-center gap-2 text-[#C5A059] text-xs font-bold uppercase tracking-wider mb-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>Localização</span>
+              <div className="p-6 sm:p-8 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-[#C5A059] text-xs font-bold uppercase tracking-wider mb-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>Localização Exata</span>
+                  </div>
+                  <h3 className="font-serif font-bold text-2xl text-neutral-900 mb-1">
+                    {currentProperty.neighborhood || 'Orla 14 (Graciosa)'}, {currentProperty.city}
+                  </h3>
+                  <p className="text-xs text-neutral-500">
+                    {currentProperty.address || currentProperty.location} — {currentProperty.city}, {currentProperty.state}
+                  </p>
                 </div>
-                <h3 className="font-serif font-bold text-2xl text-neutral-900 mb-1">
-                  {property.neighborhood}, {property.city}
-                </h3>
-                <p className="text-xs text-neutral-500">
-                  {property.address || property.location} — {property.city}, {property.state}
-                </p>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    href={getGoogleMapsDirectionsUrl(currentProperty.coordinates.lat, currentProperty.coordinates.lng)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00152B] text-white hover:bg-[#C5A059] transition-all text-xs font-bold shadow-md hover:shadow-lg cursor-pointer group"
+                  >
+                    <Navigation className="w-3.5 h-3.5 text-[#C5A059] group-hover:text-white transition-colors" />
+                    <span>Traçar Rota no Google Maps</span>
+                    <ExternalLink className="w-3 h-3 opacity-60" />
+                  </a>
+                </div>
               </div>
 
-              {/* Google Maps Embed */}
-              <div className="relative w-full" style={{ height: '320px' }}>
+              {/* Google Maps Embed with Real-Time Direction Banner */}
+              <div className="relative w-full group" style={{ height: '360px' }}>
                 <iframe
-                  title={`Mapa — ${property.name}`}
+                  title={`Mapa — ${currentProperty.name}`}
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
                   loading="lazy"
                   allowFullScreen
                   referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://maps.google.com/maps?q=${property.coordinates.lat},${property.coordinates.lng}&z=15&output=embed&hl=pt-BR`}
+                  src={getGoogleMapsEmbedUrl(currentProperty.coordinates.lat, currentProperty.coordinates.lng)}
                 />
-                {/* Open in Google Maps overlay button */}
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${property.coordinates.lat},${property.coordinates.lng}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm text-[#C5A059] text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-md border border-[#C5A059]/20 flex items-center gap-1.5 hover:bg-[#FBF7EF] transition-colors"
-                >
-                  <Navigation className="w-3 h-3" />
-                  Abrir no Maps
-                </a>
+
+                {/* Top Floating Badge */}
+                <div className="absolute top-3 left-3 bg-[#00152B]/90 backdrop-blur-md text-white text-xs px-3.5 py-1.5 rounded-xl shadow-lg border border-white/10 flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-[#C5A059]" />
+                  <span className="font-semibold">
+                    {currentProperty.neighborhood || 'Orla 14'} · Navegação em Tempo Real
+                  </span>
+                </div>
+
+                {/* Bottom Floating Action Buttons */}
+                <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                  <a
+                    href={getGoogleMapsSearchUrl(currentProperty.coordinates.lat, currentProperty.coordinates.lng, currentProperty.name || currentProperty.location)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-white/95 backdrop-blur-md text-neutral-800 text-xs font-bold px-3.5 py-2 rounded-xl shadow-lg border border-neutral-200 flex items-center gap-1.5 hover:bg-neutral-50 hover:text-[#C5A059] transition-all"
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-[#C5A059]" />
+                    Ver no Google Maps
+                  </a>
+                  <a
+                    href={getGoogleMapsDirectionsUrl(currentProperty.coordinates.lat, currentProperty.coordinates.lng)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#C5A059] text-white text-xs font-bold px-4 py-2 rounded-xl shadow-lg hover:bg-[#b08d48] flex items-center gap-1.5 transition-all"
+                  >
+                    <Navigation className="w-3.5 h-3.5" />
+                    Como Chegar (GPS)
+                  </a>
+                </div>
               </div>
 
               {/* Nearby POIs */}
@@ -535,43 +623,181 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
 
             {/* Reviews Section */}
             <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#DEE2E6] shadow-2xs">
-              <div className="flex items-center justify-between pb-6 border-b border-neutral-100 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-neutral-100 mb-6">
                 <div>
                   <h3 className="font-serif font-bold text-2xl text-neutral-900 flex items-center gap-2">
                     <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                    <span>{property.rating.toFixed(2)} · {property.reviewsCount} avaliações</span>
+                    <span>{currentProperty.rating.toFixed(2)} · {(currentProperty.reviews || []).filter((r) => r.status !== 'hidden').length} avaliações</span>
                   </h3>
-                  <p className="text-xs text-neutral-500 mt-0.5">Avaliações verificadas de hóspedes reais</p>
+                  <p className="text-xs text-neutral-500 mt-0.5">Avaliações verificadas de hóspedes da Cerrado Stays</p>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsReviewFormOpen(!isReviewFormOpen)}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[#C5A059] bg-[#FBF7EF] text-[#C5A059] hover:bg-[#C5A059] hover:text-white transition-all text-xs font-bold shadow-xs cursor-pointer"
+                >
+                  <MessageSquareQuote className="w-4 h-4" />
+                  <span>{isReviewFormOpen ? 'Fechar Formulário' : 'Avaliar Estadia'}</span>
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {property.reviews.map((rev) => (
-                  <div key={rev.id} className="p-4 rounded-xl bg-neutral-50 border border-neutral-100 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-3 mb-3">
-                        <img
-                          src={rev.authorAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
-                          alt={rev.authorName}
-                          className="w-10 h-10 rounded-full object-cover border border-neutral-200"
-                        />
-                        <div>
-                          <h4 className="font-bold text-xs text-neutral-900">{rev.authorName}</h4>
-                          <p className="text-[11px] text-neutral-500">{rev.authorLocation} · {rev.date}</p>
-                        </div>
+              {/* Guest Review Submission Form */}
+              {isReviewFormOpen && (
+                <form
+                  onSubmit={handleReviewSubmit}
+                  className="mb-8 p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#FBF7EF]/80 to-white border border-[#C5A059]/30 shadow-xs space-y-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-serif font-bold text-base text-neutral-900 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#C5A059]" />
+                      <span>Compartilhe sua Experiência</span>
+                    </h4>
+                    <span className="text-[11px] text-neutral-500 font-medium">
+                      Nota de 1 a 5 estrelas
+                    </span>
+                  </div>
+
+                  {/* Interactive Star Rating Selector */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                      Sua Nota para o Imóvel
+                    </label>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex items-center gap-1 bg-white px-3 py-2 rounded-xl border border-neutral-200">
+                        {[1, 2, 3, 4, 5].map((starValue) => {
+                          const isFilled = (reviewHoverRating || reviewRating) >= starValue;
+                          return (
+                            <button
+                              key={starValue}
+                              type="button"
+                              onMouseEnter={() => setReviewHoverRating(starValue)}
+                              onMouseLeave={() => setReviewHoverRating(0)}
+                              onClick={() => setReviewRating(starValue)}
+                              className="p-1 transition-transform hover:scale-125 cursor-pointer focus:outline-hidden"
+                            >
+                              <Star
+                                className={`w-5 h-5 ${
+                                  isFilled
+                                    ? 'text-amber-500 fill-amber-500'
+                                    : 'text-neutral-300'
+                                }`}
+                              />
+                            </button>
+                          );
+                        })}
                       </div>
-                      <p className="text-xs text-neutral-700 leading-relaxed italic">
-                        "{rev.comment}"
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 text-amber-500 pt-3 mt-3 border-t border-neutral-200/50">
-                      {[...Array(rev.rating)].map((_, i) => (
-                        <Star key={i} className="w-3 h-3 fill-amber-500" />
-                      ))}
+                      <span className="text-xs font-bold text-neutral-800">
+                        {reviewRating === 5 && '⭐️⭐️⭐️⭐️⭐️ 5.0 — Excepcional'}
+                        {reviewRating === 4 && '⭐️⭐️⭐️⭐️ 4.0 — Excelente'}
+                        {reviewRating === 3 && '⭐️⭐️⭐️ 3.0 — Bom'}
+                        {reviewRating === 2 && '⭐️⭐️ 2.0 — Razoável'}
+                        {reviewRating === 1 && '⭐️ 1.0 — Ruim'}
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  {/* Name and Origin Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1">
+                        Seu Nome Completo *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={reviewAuthorName}
+                        onChange={(e) => setReviewAuthorName(e.target.value)}
+                        placeholder="Ex: Carlos Eduardo"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-xs text-neutral-900 bg-white focus:outline-hidden focus:border-[#C5A059]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1">
+                        Sua Cidade / Origem
+                      </label>
+                      <input
+                        type="text"
+                        value={reviewAuthorLocation}
+                        onChange={(e) => setReviewAuthorLocation(e.target.value)}
+                        placeholder="Ex: Brasília - DF ou São Paulo - SP"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-xs text-neutral-900 bg-white focus:outline-hidden focus:border-[#C5A059]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Review Textarea */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1">
+                      Seu Comentário / Relato da Estadia *
+                    </label>
+                    <textarea
+                      rows={3}
+                      required
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder="Conte como foi sua estadia, o que mais gostou (vista para a Orla, conforto, limpeza, localização)..."
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-xs text-neutral-900 bg-white focus:outline-hidden focus:border-[#C5A059] resize-none"
+                    />
+                  </div>
+
+                  {/* Form Actions */}
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsReviewFormOpen(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-600 hover:bg-neutral-100 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmittingReview}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#00152B] text-white hover:bg-[#C5A059] transition-all text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{isSubmittingReview ? 'Publicando...' : 'Publicar Avaliação'}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Reviews List */}
+              {((currentProperty.reviews || []).filter((r) => r.status !== 'hidden')).length === 0 ? (
+                <div className="text-center py-8 px-4 border border-dashed border-neutral-200 rounded-xl">
+                  <MessageSquareQuote className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-neutral-700">Nenhuma avaliação publicada ainda.</p>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">Seja o primeiro hóspede a avaliar esta acomodação!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {(currentProperty.reviews || []).filter((r) => r.status !== 'hidden').map((rev) => (
+                    <div key={rev.id} className="p-4 rounded-xl bg-neutral-50 border border-neutral-100 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-3 mb-3">
+                          <img
+                            src={rev.authorAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'}
+                            alt={rev.authorName}
+                            className="w-10 h-10 rounded-full object-cover border border-neutral-200"
+                          />
+                          <div>
+                            <h4 className="font-bold text-xs text-neutral-900">{rev.authorName}</h4>
+                            <p className="text-[11px] text-neutral-500">{rev.authorLocation} · {rev.date}</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-neutral-700 leading-relaxed italic">
+                          "{rev.comment}"
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 text-amber-500 pt-3 mt-3 border-t border-neutral-200/50">
+                        {[...Array(rev.rating)].map((_, i) => (
+                          <Star key={i} className="w-3 h-3 fill-amber-500" />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

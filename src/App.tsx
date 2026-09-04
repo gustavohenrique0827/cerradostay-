@@ -40,6 +40,7 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AdminPropertiesList } from './components/admin/AdminPropertiesList';
 import { AdminPropertyForm } from './components/admin/AdminPropertyForm';
 import { AdminAvailability } from './components/admin/AdminAvailability';
+import { AdminReviews } from './components/admin/AdminReviews';
 import { AdminSettings } from './components/admin/AdminSettings';
 
 // Storage and Types
@@ -444,6 +445,18 @@ export default function App() {
             />
           )}
 
+          {/* Reviews Tab */}
+          {adminTab === 'reviews' && (
+            <AdminReviews
+              properties={properties}
+              onRefreshProperties={async () => {
+                const updated = await fetchProperties();
+                setProperties(updated);
+              }}
+              onToast={addToast}
+            />
+          )}
+
           {/* Settings Tab */}
           {adminTab === 'settings' && (
             <AdminSettings
@@ -508,6 +521,12 @@ export default function App() {
           isFavorite={favorites.includes(selectedProperty.id)}
           onToggleFavorite={handleToggleFavorite}
           onToast={addToast}
+          onUpdateProperty={(updated) => {
+            setSelectedProperty(updated);
+            setProperties((prev) =>
+              prev.map((p) => (p.id === updated.id ? updated : p))
+            );
+          }}
         />
       ) : (
         <main className="flex-1">
