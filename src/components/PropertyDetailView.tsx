@@ -5,7 +5,8 @@ import {
   Star, MapPin, Users, Bed, Bath, Heart, Share2, ArrowLeft, 
   ShieldCheck, Sparkles, Check, Copy, Wifi, Wind, Tv, 
   Utensils, Waves, Car, Shirt, Eye, Key, Dog, Coffee, Laptop, 
-  Flame, Dumbbell, Calendar, Clock, ChevronRight, MessageCircle, Lock 
+  Flame, Dumbbell, Calendar, Clock, ChevronRight, MessageCircle, Lock,
+  ShoppingCart, Fuel, Scissors, ShoppingBag, Navigation
 } from 'lucide-react';
 import { AvailabilityCalendar } from './AvailabilityCalendar';
 import { PropertyGalleryModal } from './PropertyGalleryModal';
@@ -420,34 +421,114 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
               </div>
             </div>
 
-            {/* Location & Neighborhood Highlights in Palmas */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#DEE2E6] shadow-2xs">
-              <div className="flex items-center gap-2 text-[#C5A059] text-xs font-bold uppercase tracking-wider mb-2">
-                <MapPin className="w-4 h-4" />
-                <span>Localização em Palmas, TO</span>
+            {/* Location & Map Section */}
+            <div className="bg-white rounded-2xl border border-[#DEE2E6] shadow-2xs overflow-hidden">
+              {/* Header */}
+              <div className="p-6 sm:p-8 pb-4">
+                <div className="flex items-center gap-2 text-[#C5A059] text-xs font-bold uppercase tracking-wider mb-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>Localização</span>
+                </div>
+                <h3 className="font-serif font-bold text-2xl text-neutral-900 mb-1">
+                  {property.neighborhood}, {property.city}
+                </h3>
+                <p className="text-xs text-neutral-500">
+                  {property.address || property.location} — {property.city}, {property.state}
+                </p>
               </div>
-              <h3 className="font-serif font-bold text-2xl text-neutral-900 mb-2">
-                {property.location}
-              </h3>
-              <p className="text-xs text-neutral-500 mb-6">
-                Região nobre com acesso facilitado às principais atrações, gastronomia e belezas naturais da capital tocantinense.
-              </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-100">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#C5A059]">Lago & Orla</p>
-                  <p className="text-xs font-semibold text-neutral-900 mt-1">Praia da Graciosa</p>
-                  <p className="text-[11px] text-neutral-500 mt-0.5">Pôr do sol, calçadão e esportes náuticos</p>
+              {/* Google Maps Embed */}
+              <div className="relative w-full" style={{ height: '320px' }}>
+                <iframe
+                  title={`Mapa — ${property.name}`}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://maps.google.com/maps?q=${property.coordinates.lat},${property.coordinates.lng}&z=15&output=embed&hl=pt-BR`}
+                />
+                {/* Open in Google Maps overlay button */}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${property.coordinates.lat},${property.coordinates.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm text-[#C5A059] text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-md border border-[#C5A059]/20 flex items-center gap-1.5 hover:bg-[#FBF7EF] transition-colors"
+                >
+                  <Navigation className="w-3 h-3" />
+                  Abrir no Maps
+                </a>
+              </div>
+
+              {/* Nearby POIs */}
+              <div className="p-6 sm:p-8 pt-6 border-t border-neutral-100">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-4">O que há nas proximidades</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {/* Supermercados */}
+                  <div className="group p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100/60 border border-emerald-200/60 hover:border-emerald-300 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-2.5">
+                      <ShoppingCart className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 mb-1">Supermercados</p>
+                    <p className="text-xs font-semibold text-neutral-800">Bretas, Atacadão</p>
+                    <p className="text-[10px] text-neutral-500 mt-0.5">a poucos minutos</p>
+                  </div>
+
+                  {/* Postos */}
+                  <div className="group p-4 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/60 border border-amber-200/60 hover:border-amber-300 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2.5">
+                      <Fuel className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">Postos</p>
+                    <p className="text-xs font-semibold text-neutral-800">Shell, Ipiranga</p>
+                    <p className="text-[10px] text-neutral-500 mt-0.5">na região</p>
+                  </div>
+
+                  {/* Shopping */}
+                  <div className="group p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/60 border border-purple-200/60 hover:border-purple-300 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center mb-2.5">
+                      <ShoppingBag className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-purple-700 mb-1">Shopping</p>
+                    <p className="text-xs font-semibold text-neutral-800">Capim Dourado</p>
+                    <p className="text-[10px] text-neutral-500 mt-0.5">lojas & lazer</p>
+                  </div>
+
+                  {/* Serviços */}
+                  <div className="group p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/60 border border-blue-200/60 hover:border-blue-300 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mb-2.5">
+                      <Scissors className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700 mb-1">Serviços</p>
+                    <p className="text-xs font-semibold text-neutral-800">Farmácias, bancos</p>
+                    <p className="text-[10px] text-neutral-500 mt-0.5">farmácias & bancos</p>
+                  </div>
                 </div>
-                <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-100">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#C5A059]">Centro & Negócios</p>
-                  <p className="text-xs font-semibold text-neutral-900 mt-1">Praça dos Girassóis</p>
-                  <p className="text-[11px] text-neutral-500 mt-0.5">Centro cívico, palácios e bistrôs</p>
-                </div>
-                <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-100">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[#C5A059]">Ecoturismo</p>
-                  <p className="text-xs font-semibold text-neutral-900 mt-1">Serra do Carmo / Taquaruçu</p>
-                  <p className="text-[11px] text-neutral-500 mt-0.5">Cachoeiras e mirantes panorâmicos</p>
+
+                {/* Palmas highlights */}
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center gap-3">
+                    <span className="text-lg">🌅</span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">Lago & Orla</p>
+                      <p className="text-xs font-semibold text-neutral-800">Praia da Graciosa</p>
+                    </div>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center gap-3">
+                    <span className="text-lg">🏛️</span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">Centro</p>
+                      <p className="text-xs font-semibold text-neutral-800">Praça dos Girassóis</p>
+                    </div>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-neutral-50 border border-neutral-100 flex items-center gap-3">
+                    <span className="text-lg">🌿</span>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">Ecoturismo</p>
+                      <p className="text-xs font-semibold text-neutral-800">Taquaruçu</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

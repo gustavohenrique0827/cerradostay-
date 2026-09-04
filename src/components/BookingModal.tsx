@@ -4,10 +4,35 @@ import { Property, BookingRequest } from '../types';
 import { 
   X, MessageCircle, Calendar, Users, ShieldCheck, 
   Sparkles, CheckCircle2, Clock, Copy, Check, 
-  MapPin, ArrowRight, Phone, User, MessageSquare
+  MapPin, ArrowRight, Phone, User, MessageSquare,
+  CreditCard, QrCode, FileText, Banknote, IdCard
 } from 'lucide-react';
 import { BRAND_CONFIG, getPropertyWhatsAppBookingUrl } from '../config';
 import { saveBooking } from '../utils/bookingStorage';
+
+type PaymentOption = 'pix' | 'credit_card' | 'debit_card' | 'boleto';
+
+const PAYMENT_OPTIONS: { value: PaymentOption; label: string; sublabel: string; icon: React.ReactNode; color: string; border: string; bg: string }[] = [
+  { value: 'pix', label: 'PIX', sublabel: 'Imediato', icon: <QrCode className="w-5 h-5" />, color: 'text-emerald-600', border: 'border-emerald-400', bg: 'bg-emerald-50' },
+  { value: 'credit_card', label: 'Crédito', sublabel: 'Até 12x', icon: <CreditCard className="w-5 h-5" />, color: 'text-blue-600', border: 'border-blue-400', bg: 'bg-blue-50' },
+  { value: 'debit_card', label: 'Débito', sublabel: 'À vista', icon: <Banknote className="w-5 h-5" />, color: 'text-violet-600', border: 'border-violet-400', bg: 'bg-violet-50' },
+  { value: 'boleto', label: 'Boleto', sublabel: '1-3 dias úteis', icon: <FileText className="w-5 h-5" />, color: 'text-amber-600', border: 'border-amber-400', bg: 'bg-amber-50' },
+];
+
+const PAYMENT_LABELS: Record<PaymentOption, string> = {
+  pix: 'PIX',
+  credit_card: 'Cartão de Crédito',
+  debit_card: 'Cartão de Débito',
+  boleto: 'Boleto Bancário',
+};
+
+function formatCPF(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -35,6 +60,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   // Guest Information
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
+  const [guestCpf, setGuestCpf] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentOption>('pix');
   const [arrivalTime, setArrivalTime] = useState('15:00 - 18:00');
   const [specialRequests, setSpecialRequests] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
@@ -90,6 +117,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   }, [isOpen, onClose]);
 
   const generateWhatsAppUrl = () => {
+    const cpfLine = guestCpf ? `\nCPF: ${guestCpf}` : '';
+    const extraInfo = `${cpfLine}\nForma de Pagamento Preferida: ${PAYMENT_LABELS[paymentMethod]}\nChegada prevista: ${arrivalTime}`;
+    const requests = specialRequests ? `${specialRequests}${extraInfo}` : extraInfo.trim();
     return getPropertyWhatsAppBookingUrl({
       propertyName: property.name,
       checkIn: checkIn ? formatDateDisplay(checkIn) : 'A definir',
@@ -100,7 +130,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       totalAmount,
       guestName,
       guestPhone,
-      specialRequests: specialRequests ? `${specialRequests} (Chegada prevista: ${arrivalTime})` : `Chegada prevista: ${arrivalTime}`,
+      specialRequests: requests,
       bookingCode: requestCode,
     });
   };
@@ -119,6 +149,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       guestName: guestName.trim() || 'Hóspede Cerrado Stay',
       guestEmail: '',
       guestPhone: guestPhone.trim(),
+      guestCpf: guestCpf.trim(),
       checkIn,
       checkOut,
       adults,
@@ -132,6 +163,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       serviceFee,
       totalAmount,
       status: 'pending',
+      payment: { method: paymentMethod as any, status: 'pending' },
       createdAt: new Date().toISOString(),
     };
     saveBooking(newInquiry);
@@ -255,50 +287,70 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   </div>
                 </div>
 
-                {/* Optional Guest Identification */}
-                <div className="space-y-4 pt-1">
-                  <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-700">
-                    <User className="w-3.5 h-3.5 text-[#C5A059]" />
-                    <span>Seus Dados de Contato (Opcional)</span>
+                {/* ── Dados do Hóspede ── */}
+                <div className="space-y-5 pt-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-px bg-neutral-100" />
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-neutral-400 px-1">
+                      <User className="w-3 h-3 text-[#C5A059]" />
+                      <span>Dados do Hóspede</span>
+                    </div>
+                    <div className="flex-1 h-px bg-neutral-100" />
                   </div>
 
+                  {/* Nome + Telefone */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-semibold text-neutral-600 mb-1">
-                        Seu Nome Completo
+                      <label className="block text-[11px] font-semibold text-neutral-600 mb-1.5">
+                        Nome Completo <span className="text-red-400">*</span>
                       </label>
                       <input
                         type="text"
                         value={guestName}
                         onChange={(e) => setGuestName(e.target.value)}
-                        placeholder="Ex: João Silva"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]"
+                        placeholder="Ex: João da Silva"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all"
                       />
                     </div>
-
                     <div>
-                      <label className="block text-[11px] font-semibold text-neutral-600 mb-1">
-                        Seu WhatsApp com DDD
+                      <label className="block text-[11px] font-semibold text-neutral-600 mb-1.5">
+                        WhatsApp com DDD <span className="text-red-400">*</span>
                       </label>
                       <input
                         type="tel"
                         value={guestPhone}
                         onChange={(e) => setGuestPhone(e.target.value)}
-                        placeholder="Ex: (63) 99999-9999"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]"
+                        placeholder="(63) 99999-9999"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all"
                       />
                     </div>
                   </div>
 
+                  {/* CPF + Chegada */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[11px] font-semibold text-neutral-600 mb-1">
-                        Previsão de Chegada (Check-in)
+                      <label className="block text-[11px] font-semibold text-neutral-600 mb-1.5 flex items-center gap-1">
+                        <IdCard className="w-3 h-3 text-[#C5A059]" />
+                        CPF do Responsável
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={guestCpf}
+                        onChange={(e) => setGuestCpf(formatCPF(e.target.value))}
+                        placeholder="000.000.000-00"
+                        maxLength={14}
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all font-mono tracking-widest"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-neutral-600 mb-1.5">
+                        Previsão de Chegada
                       </label>
                       <select
                         value={arrivalTime}
                         onChange={(e) => setArrivalTime(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all"
                       >
                         <option value="15:00 - 18:00">15:00 às 18:00 (Padrão)</option>
                         <option value="18:00 - 21:00">18:00 às 21:00 (Noite)</option>
@@ -306,19 +358,49 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                         <option value="Early check-in (Sob consulta)">Early check-in (Sob consulta)</option>
                       </select>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-[11px] font-semibold text-neutral-600 mb-1">
-                        Observações ou Pedidos Especiais
-                      </label>
-                      <input
-                        type="text"
-                        value={specialRequests}
-                        onChange={(e) => setSpecialRequests(e.target.value)}
-                        placeholder="Ex: berço infantil, vaga extra..."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059]"
-                      />
+                  {/* Forma de Pagamento */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-neutral-600 mb-2.5 flex items-center gap-1">
+                      <CreditCard className="w-3 h-3 text-[#C5A059]" />
+                      Forma de Pagamento Preferida
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {PAYMENT_OPTIONS.map((opt) => {
+                        const isSelected = paymentMethod === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => setPaymentMethod(opt.value)}
+                            className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                              isSelected
+                                ? `${opt.border} ${opt.bg} shadow-sm`
+                                : 'border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50'
+                            }`}
+                          >
+                            <span className={isSelected ? opt.color : 'text-neutral-400'}>{opt.icon}</span>
+                            <span className={`text-[11px] font-bold ${isSelected ? opt.color : 'text-neutral-600'}`}>{opt.label}</span>
+                            <span className={`text-[9px] font-medium ${isSelected ? opt.color : 'text-neutral-400'}`}>{opt.sublabel}</span>
+                          </button>
+                        );
+                      })}
                     </div>
+                  </div>
+
+                  {/* Pedidos especiais */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-neutral-600 mb-1.5">
+                      Observações ou Pedidos Especiais
+                    </label>
+                    <input
+                      type="text"
+                      value={specialRequests}
+                      onChange={(e) => setSpecialRequests(e.target.value)}
+                      placeholder="Ex: berço infantil, vaga extra, alergia alimentar..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:border-[#C5A059] focus:ring-1 focus:ring-[#C5A059] transition-all"
+                    />
                   </div>
                 </div>
 
