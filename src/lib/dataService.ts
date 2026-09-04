@@ -162,7 +162,7 @@ export function validateAndSanitizeProperty(raw: any): PropertyValidationResult 
   const beds = Math.max(0, Math.floor(Number(raw.beds) || bedrooms || 1));
   const bathrooms = Math.max(0, Number(raw.bathrooms) || 1);
   const cleaningFee = Math.max(0, Number(raw.cleaningFee) || 0);
-  const serviceFeePercentage = Math.max(0, Number(raw.serviceFeePercentage) ?? 10);
+  const serviceFeePercentage = Math.max(0, Number(raw.serviceFeePercentage) || 10);
   const rating = Math.min(5, Math.max(0, Number(raw.rating) || 5.0));
   const reviewsCount = Math.max(0, Math.floor(Number(raw.reviewsCount) || 0));
 
@@ -504,7 +504,7 @@ export function mapDbToProperty(row: any): Property {
     images: row.images,
     pricePerNight: row.price_per_night || row.pricePerNight,
     cleaningFee: row.cleaning_fee || row.cleaningFee,
-    serviceFeePercentage: row.service_fee_percentage || row.serviceFeePercentage,
+    serviceFeePercentage: Number(row.service_fee_percentage || row.serviceFeePercentage) || 10,
     maxGuests: row.max_guests || row.maxGuests,
     bedrooms: row.bedrooms,
     beds: row.beds,
