@@ -40,6 +40,7 @@ import {
 import { Property, PropertyUnavailability } from '../../types';
 import { exportAdminReportCSV } from '../../utils/csvExport';
 import { exportAdminDashboardPDF } from '../../utils/pdfExport';
+import { exportToGoogleSheetsCSV } from '../../lib/googleSheetsService';
 
 interface AdminDashboardProps {
   properties: Property[];
@@ -275,6 +276,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  const handleExportGoogleSheets = () => {
+    try {
+      exportToGoogleSheetsCSV(properties, unavailabilities);
+      if (onToast) {
+        onToast('Planilha Google (CSV) baixada para a equipe!', 'success');
+      }
+    } catch (err) {
+      console.error('Erro ao exportar Planilha Google:', err);
+      if (onToast) {
+        onToast('Erro ao exportar Planilha Google.', 'error');
+      }
+    }
+  };
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Top Welcome Banner */}
@@ -293,6 +308,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </div>
 
         <div className="flex items-center flex-wrap gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={handleExportGoogleSheets}
+            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-2xs min-h-[40px]"
+            title="Exportar base formatada para o Google Planilhas das meninas"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
+            <span>Planilha Google</span>
+          </button>
+
           <button
             type="button"
             onClick={handleExportPDF}

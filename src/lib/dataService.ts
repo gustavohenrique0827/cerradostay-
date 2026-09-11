@@ -1,6 +1,11 @@
 import { getSupabase } from './supabase';
 import { Property, PropertyCategory, PropertyStatus, PropertyUnavailability, PropertyReview } from '../types';
 import { resolvePalmasCoordinates } from '../utils/geoUtils';
+import { 
+  getGoogleSheetsConfig, 
+  syncWithGoogleSheetsWebhook, 
+  fetchPropertiesFromGoogleSheetsCsv 
+} from './googleSheetsService';
 
 export const INITIAL_PROPERTIES: Property[] = [
   {
@@ -579,6 +584,13 @@ export function mapPropertyToDb(prop: Partial<Property>): Record<string, any> {
   return dbPayload;
 }
 
+export type SupabaseStatus = 'active' | 'quota_restricted' | 'offline' | 'unconfigured';
+let cachedSupabaseStatus: SupabaseStatus = 'active';
+
+export function getCachedSupabaseStatus(): SupabaseStatus {
+  return cachedSupabaseStatus;
+}
+
 /**
  * Fetches all properties using IndexedDB / atomic local storage with optional Supabase background synchronization.
  */
@@ -600,7 +612,15 @@ export async function fetchProperties(): Promise<Property[]> {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data && Array.isArray(data) && data.length > 0) {
+      if (error) {
+        if (error.message?.includes('exceed_egress_quota') || error.code === '402' || (error as any).status === 402) {
+          cachedSupabaseStatus = 'quota_restricted';
+          console.warn('fetchProperties - Supabase cota excedida (402), operando em modo offline seguro.');
+        } else {
+          cachedSupabaseStatus = 'offline';
+        }
+      } else if (data && Array.isArray(data) && data.length > 0) {
+        cachedSupabaseStatus = 'active';
         const mappedList = data.map(mapDbToProperty);
         storageEngine.saveProperties(mappedList);
         return mappedList;
@@ -626,11 +646,33 @@ export async function fetchProperties(): Promise<Property[]> {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.warn('fetchProperties - Supabase notice, using verified local storage:', error.message);
+      if (error.message?.includes('exceed_egress_quota') || error.code === '402' || (error as any).status === 402) {
+        cachedSupabaseStatus = 'quota_restricted';
+        console.warn('fetchProperties - Supabase cota excedida (402), usando armazenamento local/backup.');
+      } else {
+        cachedSupabaseStatus = 'offline';
+        console.warn('fetchProperties - Supabase notice, using verified local storage:', error.message);
+      }
+
+      // Se a lista local estiver vazia ou só com o demo inicial, tentar fallback do Google Sheets caso configurado
+      if (localList.length <= 1) {
+        try {
+          const sheetCfg = getGoogleSheetsConfig();
+          if (sheetCfg.publishedCsvUrl) {
+            const sheetProps = await fetchPropertiesFromGoogleSheetsCsv(sheetCfg.publishedCsvUrl);
+            if (sheetProps.length > 0) {
+              storageEngine.saveProperties(sheetProps);
+              return sheetProps;
+            }
+          }
+        } catch {}
+      }
+
       return localList;
     }
 
     if (data && Array.isArray(data) && data.length > 0) {
+      cachedSupabaseStatus = 'active';
       const mappedList = data.map(mapDbToProperty);
       storageEngine.saveProperties(mappedList);
       return mappedList;
@@ -638,6 +680,7 @@ export async function fetchProperties(): Promise<Property[]> {
 
     return localList;
   } catch (err) {
+    cachedSupabaseStatus = 'offline';
     console.warn('fetchProperties - Remote sync handled, using local storage:', err);
     return localList;
   }
@@ -696,6 +739,16 @@ export async function saveProperty(
     }
   }
 
+  // 4. Optional background sync to Google Sheets
+  try {
+    const sheetCfg = getGoogleSheetsConfig();
+    if (sheetCfg.autoSync && sheetCfg.webhookUrl) {
+      syncWithGoogleSheetsWebhook(updatedList);
+    }
+  } catch (e) {
+    console.warn('Google Sheets auto-sync notice:', e);
+  }
+
   return { success: true, property: fullProperty };
 }
 
@@ -721,6 +774,14 @@ export async function deleteProperty(id: string): Promise<{ success: boolean; er
       console.warn('Supabase delete error handled:', e);
     }
   }
+
+  // Sync with Google Sheets if configured
+  try {
+    const sheetCfg = getGoogleSheetsConfig();
+    if (sheetCfg.autoSync && sheetCfg.webhookUrl) {
+      syncWithGoogleSheetsWebhook(filtered);
+    }
+  } catch {}
 
   return { success: true };
 }

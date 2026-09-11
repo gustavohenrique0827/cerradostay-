@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Settings as SettingsIcon, 
   ShieldCheck, 
@@ -20,15 +20,34 @@ import {
   Calendar, 
   Sparkles,
   Database,
-  Lock
+  Lock,
+  ExternalLink,
+  RefreshCw,
+  Copy,
+  Check,
+  Zap,
+  Globe
 } from 'lucide-react';
 import { exportAdminReportCSV } from '../../utils/csvExport';
 import { 
   fetchProperties, 
   getUnavailabilities, 
   exportPropertiesBackup, 
-  importPropertiesBackup 
+  importPropertiesBackup,
+  getCachedSupabaseStatus,
+  SupabaseStatus
 } from '../../lib/dataService';
+import { 
+  getGoogleSheetsConfig, 
+  saveGoogleSheetsConfig, 
+  exportToGoogleSheetsCSV, 
+  syncWithGoogleSheetsWebhook,
+  GOOGLE_APPS_SCRIPT_TEMPLATE
+} from '../../lib/googleSheetsService';
+import { 
+  downloadFullSystemBackup, 
+  restoreFullSystemBackup 
+} from '../../lib/backupService';
 import { BRAND_CONFIG } from '../../config';
 import { ConfirmationModal } from './ConfirmationModal';
 
@@ -40,8 +59,113 @@ interface AdminSettingsProps {
 export const AdminSettings: React.FC<AdminSettingsProps> = ({ onResetDemoData, onToast }) => {
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fullBackupInputRef = useRef<HTMLInputElement>(null);
 
-  const handleExportCSV = async () => {
+  // Google Sheets integration state
+  const [sheetsConfig, setSheetsConfig] = useState(() => getGoogleSheetsConfig());
+  const [webhookInput, setWebhookInput] = useState(sheetsConfig.webhookUrl);
+  const [csvUrlInput, setCsvUrlInput] = useState(sheetsConfig.publishedCsvUrl);
+  const [isSyncingSheets, setIsSyncingSheets] = useState(false);
+  const [showScriptModal, setShowScriptModal] = useState(false);
+  const [hasCopiedScript, setHasCopiedScript] = useState(false);
+
+  // Supabase status check
+  const [supabaseStatus, setSupabaseStatus] = useState<SupabaseStatus>(getCachedSupabaseStatus());
+
+  useEffect(() => {
+    setSupabaseStatus(getCachedSupabaseStatus());
+  }, []);
+
+  const handleExportGoogleSheetsCSV = async () => {
+    try {
+      const props = await fetchProperties();
+      const unavs = await getUnavailabilities();
+      exportToGoogleSheetsCSV(props, unavs);
+      onToast('Planilha Google (CSV) gerada e baixada com sucesso!', 'success');
+    } catch (err) {
+      console.error('Erro ao exportar Planilha Google:', err);
+      onToast('Erro ao gerar planilha Google.', 'error');
+    }
+  };
+
+  const handleSaveSheetsConfig = async () => {
+    const updated = saveGoogleSheetsConfig({
+      webhookUrl: webhookInput.trim(),
+      publishedCsvUrl: csvUrlInput.trim(),
+    });
+    setSheetsConfig(updated);
+    onToast('Configurações da Planilha Google salvas com sucesso!', 'success');
+  };
+
+  const handleManualSyncSheets = async () => {
+    if (!webhookInput.trim()) {
+      onToast('Cole primeiro a URL do Webhook do Google Apps Script abaixo.', 'info');
+      return;
+    }
+    setIsSyncingSheets(true);
+    try {
+      saveGoogleSheetsConfig({ webhookUrl: webhookInput.trim() });
+      const props = await fetchProperties();
+      const unavs = await getUnavailabilities();
+      const res = await syncWithGoogleSheetsWebhook(props, unavs);
+      if (res.success) {
+        onToast('Sincronização com o Google Planilhas realizada com sucesso!', 'success');
+        setSheetsConfig(getGoogleSheetsConfig());
+      } else {
+        onToast(res.message, 'error');
+      }
+    } catch (err: any) {
+      onToast(`Erro ao sincronizar: ${err?.message || 'Falha de rede'}`, 'error');
+    } finally {
+      setIsSyncingSheets(false);
+    }
+  };
+
+  const handleCopyScript = () => {
+    navigator.clipboard.writeText(GOOGLE_APPS_SCRIPT_TEMPLATE);
+    setHasCopiedScript(true);
+    onToast('Código do Apps Script copiado para a área de transferência!', 'success');
+    setTimeout(() => setHasCopiedScript(false), 3000);
+  };
+
+  const handleDownloadFullBackup = async () => {
+    try {
+      const props = await fetchProperties();
+      const unavs = await getUnavailabilities();
+      await downloadFullSystemBackup(props, unavs);
+      onToast('Backup completo do sistema (imóveis e calendário) baixado com sucesso!', 'success');
+    } catch (err) {
+      console.error('Erro ao gerar backup completo:', err);
+      onToast('Erro ao exportar backup integral do sistema.', 'error');
+    }
+  };
+
+  const handleRestoreFullBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const content = event.target?.result as string;
+        const result = await restoreFullSystemBackup(content);
+        if (result.success) {
+          onToast(`Sistema restaurado com sucesso! (${result.propertiesCount || 0} imóveis e ${result.unavailabilitiesCount || 0} bloqueios recuperados)`, 'success');
+          window.dispatchEvent(new CustomEvent('cerrado_stays_properties_updated'));
+        } else {
+          onToast(`Falha na restauração: ${result.error}`, 'error');
+        }
+      } catch (err: any) {
+        onToast(`Erro ao processar arquivo: ${err?.message || 'Arquivo corrompido'}`, 'error');
+      }
+    };
+    reader.readAsText(file);
+    if (fullBackupInputRef.current) {
+      fullBackupInputRef.current.value = '';
+    }
+  };
+
+  const handleExportLegacyCSV = async () => {
     try {
       const props = await fetchProperties();
       const unavs = await getUnavailabilities();
@@ -50,51 +174,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onResetDemoData, o
     } catch (err) {
       console.error('Erro ao exportar CSV:', err);
       onToast('Erro ao gerar relatório CSV.', 'error');
-    }
-  };
-
-  const handleExportJSON = () => {
-    try {
-      const jsonBackup = exportPropertiesBackup();
-      const blob = new Blob([jsonBackup], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `cerrado_stays_backup_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      onToast('Backup JSON verificado e baixado com sucesso!', 'success');
-    } catch (err) {
-      console.error('Erro ao exportar JSON:', err);
-      onToast('Erro ao exportar backup JSON.', 'error');
-    }
-  };
-
-  const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const content = event.target?.result as string;
-        const result = importPropertiesBackup(content);
-        if (result.success) {
-          onToast(`Backup importado com sucesso! (${result.count || 0} imóveis carregados com integridade verificada)`, 'success');
-          // Reload view data
-          window.dispatchEvent(new CustomEvent('cerrado_stays_properties_updated'));
-        } else {
-          onToast(`Falha na integridade do backup: ${result.error}`, 'error');
-        }
-      } catch (err: any) {
-        onToast(`Erro ao processar arquivo: ${err?.message || 'Arquivo corrompido'}`, 'error');
-      }
-    };
-    reader.readAsText(file);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
     }
   };
 
@@ -110,31 +189,222 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onResetDemoData, o
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#DEE2E6] shadow-xs">
         <div className="inline-flex items-center gap-2 text-[#C5A059] text-xs font-bold uppercase tracking-wider mb-2">
           <SettingsIcon className="w-3.5 h-3.5" />
-          <span>Controle do Sistema & Dados</span>
+          <span>Controle do Sistema, Banco de Dados & Backups</span>
         </div>
         <h1 className="font-serif text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
           Configurações Administrativas
         </h1>
         <p className="text-xs sm:text-sm text-neutral-500 font-light mt-0.5">
-          Gerencie backups atômicos em JSON, exporte auditorias em formato CSV e visualize informações operacionais da administradora.
+          Integração com o Google Planilhas para a equipe comercial, backup atômico independente e gerenciamento de status da nuvem.
         </p>
       </div>
 
-      {/* JSON Atomic Backup & Data Persistence Card */}
+      {/* Supabase Status Alert Card */}
+      {supabaseStatus === 'quota_restricted' ? (
+        <div className="bg-amber-50 border border-amber-300 rounded-3xl p-6 sm:p-7 shadow-xs space-y-3">
+          <div className="flex items-start justify-between gap-4 flex-col sm:flex-row">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-serif font-bold text-base text-amber-900 flex items-center gap-2">
+                  <span>Supabase: Cota de Tráfego Atingida (Erro 402 - exceed_egress_quota)</span>
+                  <span className="bg-amber-200 text-amber-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase">
+                    Modo Seguro Ativo
+                  </span>
+                </h3>
+                <p className="text-xs text-amber-800 leading-relaxed font-light">
+                  O limite mensal de transferência do seu plano gratuito do Supabase foi atingido. O sistema ativou o <strong>modo de segurança local</strong> para continuar funcionando no seu computador sem travar. Para que novos clientes no celular recebam as atualizações, desbloqueie no painel do Supabase.
+                </p>
+              </div>
+            </div>
+
+            <a
+              href="https://supabase.com/dashboard/project/yqqtiovnkusoicgamuqd/settings/billing/subscription"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-amber-700 hover:bg-amber-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 shadow-xs"
+            >
+              <span>Desbloquear no Supabase</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-emerald-50/70 border border-emerald-200 rounded-3xl p-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold text-emerald-950 block">Conexão do Banco de Dados</span>
+              <span className="text-[11px] text-emerald-700">Supabase operacional com redundância em cache local.</span>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold uppercase px-2.5 py-1 bg-emerald-200 text-emerald-900 rounded-full">
+            Online
+          </span>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 1. GOOGLE SHEETS BACKUP & LIVE SYNC SECTION */}
+      {/* ========================================================================= */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#DEE2E6] shadow-xs space-y-6">
+        <div className="flex items-start sm:items-center justify-between gap-4 pb-4 border-b border-neutral-100 flex-col sm:flex-row">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
+              <FileSpreadsheet className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-serif font-bold text-lg text-neutral-900 flex items-center gap-2">
+                <span>Planilha Google (Google Sheets) da Equipe</span>
+                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase border border-emerald-200">
+                  Para as Meninas
+                </span>
+              </h3>
+              <p className="text-xs text-neutral-500">
+                Tudo o que estiver publicado no site cai organizado em uma planilha para acompanhamento comercial e backup seguro.
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Download Sheets CSV Button */}
+          <button
+            type="button"
+            onClick={handleExportGoogleSheetsCSV}
+            className="bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 shadow-xs cursor-pointer shrink-0 min-h-[42px]"
+          >
+            <Download className="w-4 h-4" />
+            <span>Baixar Planilha Google (CSV)</span>
+          </button>
+        </div>
+
+        {/* Sync Settings & Webhook Input */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-8 space-y-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                URL do Webhook do Google Apps Script (Sincronização em Tempo Real)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={webhookInput}
+                  onChange={(e) => setWebhookInput(e.target.value)}
+                  placeholder="https://script.google.com/macros/s/.../exec"
+                  className="w-full px-4 py-2.5 rounded-xl border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveSheetsConfig}
+                  className="bg-neutral-800 hover:bg-neutral-900 text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shrink-0 min-h-[40px]"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <p className="text-[11px] text-neutral-500 mt-1">
+                Quando configurado, cada alteração ou imóvel novo é enviado automaticamente para a planilha da equipe.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                URL do CSV Público da Planilha Google (Fallback Automático)
+              </label>
+              <input
+                type="url"
+                value={csvUrlInput}
+                onChange={(e) => setCsvUrlInput(e.target.value)}
+                placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv"
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-300 text-xs text-neutral-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+              />
+              <p className="text-[11px] text-neutral-500 mt-1">
+                Se o banco Supabase cair, o site usará essa planilha pública para carregar os imóveis no celular das clientes.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleManualSyncSheets}
+                disabled={isSyncingSheets}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncingSheets ? 'animate-spin' : ''}`} />
+                <span>{isSyncingSheets ? 'Sincronizando...' : 'Testar e Sincronizar Agora'}</span>
+              </button>
+
+              {sheetsConfig.lastSyncDate && (
+                <span className="text-[11px] text-neutral-500">
+                  Última sincronização: {new Date(sheetsConfig.lastSyncDate).toLocaleTimeString('pt-BR')}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Guide Card */}
+          <div className="lg:col-span-4 p-5 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-3">
+            <div className="flex items-center gap-2 text-neutral-900 font-bold text-xs">
+              <Info className="w-4 h-4 text-emerald-600" />
+              <span>Como conectar sua planilha:</span>
+            </div>
+            <ol className="text-[11px] text-neutral-600 space-y-1.5 list-decimal list-inside leading-relaxed">
+              <li>Crie uma nova planilha no <strong>Google Sheets</strong>.</li>
+              <li>Vá em <strong>Extensões &gt; Apps Script</strong>.</li>
+              <li>Copie e cole nosso código pronto.</li>
+              <li>Clique em <strong>Implantar &gt; App da Web</strong>.</li>
+              <li>Cole a URL gerada aqui no campo ao lado!</li>
+            </ol>
+            <button
+              type="button"
+              onClick={() => setShowScriptModal(!showScriptModal)}
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer pt-1"
+            >
+              <span>{showScriptModal ? 'Ocultar código do Apps Script' : 'Ver código pronto do Apps Script'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Expandable Apps Script Code Preview */}
+        {showScriptModal && (
+          <div className="mt-4 p-5 rounded-2xl bg-neutral-900 text-neutral-100 space-y-3 font-mono text-xs">
+            <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
+              <span className="text-neutral-400 text-[11px]">Código do Google Apps Script (Copie e cole na planilha):</span>
+              <button
+                type="button"
+                onClick={handleCopyScript}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-sans font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                {hasCopiedScript ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{hasCopiedScript ? 'Copiado!' : 'Copiar Código'}</span>
+              </button>
+            </div>
+            <pre className="max-h-60 overflow-y-auto text-[11px] leading-relaxed p-2 bg-neutral-950 rounded-xl">
+              {GOOGLE_APPS_SCRIPT_TEMPLATE}
+            </pre>
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. FULL SYSTEM BACKUP & RESTORE SECTION */}
+      {/* ========================================================================= */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#DEE2E6] shadow-xs space-y-5">
         <div className="flex items-center gap-3 pb-3 border-b border-neutral-100">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
-            <FileCode className="w-5 h-5" />
+          <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-200 text-blue-700 flex items-center justify-center shrink-0">
+            <Database className="w-5 h-5" />
           </div>
           <div>
             <h3 className="font-serif font-bold text-lg text-neutral-900 flex items-center gap-2">
-              <span>Persistência & Backup Atômico JSON</span>
-              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-emerald-200">
-                Seguro & Verificado
+              <span>Backup Integral do Sistema (Imóveis + Calendário + Avaliações)</span>
+              <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase border border-blue-200">
+                100% Independente
               </span>
             </h3>
             <p className="text-xs text-neutral-500">
-              Faça backup integral estruturado ou restaure imóveis a partir de um arquivo JSON validado com integridade estrita.
+              Gere um arquivo único contendo todos os dados do sistema para guardar com segurança ou restaurar em qualquer computador.
             </p>
           </div>
         </div>
@@ -142,44 +412,46 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onResetDemoData, o
         <div className="p-4 sm:p-6 rounded-2xl bg-[#FAF9F7] border border-[#DEE2E6] flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div className="space-y-1">
             <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
-              <Database className="w-4 h-4 text-[#C5A059]" />
-              <span>Base Local de Imóveis & Bloqueios</span>
+              <ShieldCheck className="w-4 h-4 text-[#C5A059]" />
+              <span>Garantia de Não Dependência do Banco</span>
             </h4>
             <p className="text-xs text-neutral-500 max-w-xl leading-relaxed">
-              O verificador de integridade analisa cada campo, tipos de dados e sanitização antes de aplicar no armazenamento local, prevenindo corrupção de dados e garantindo confiabilidade máxima.
+              Mesmo que o Supabase pare completamente ou o cartão seja recusado, ao baixar este arquivo você tem todo o seu catálogo, fotos, descrições e bloqueios salvos no seu computador.
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             <button
               type="button"
-              onClick={handleExportJSON}
+              onClick={handleDownloadFullBackup}
               className="bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-2xs min-h-[40px]"
             >
-              <Download className="w-4 h-4 text-[#C5A059]" />
-              <span>Exportar JSON</span>
+              <Download className="w-4 h-4 text-blue-600" />
+              <span>Baixar Backup Completo</span>
             </button>
 
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => fullBackupInputRef.current?.click()}
               className="bg-[#002147] hover:bg-[#C5A059] text-white px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xs min-h-[40px]"
             >
               <Upload className="w-4 h-4" />
-              <span>Importar JSON</span>
+              <span>Restaurar Backup</span>
             </button>
             <input
-              ref={fileInputRef}
+              ref={fullBackupInputRef}
               type="file"
               accept=".json,application/json"
-              onChange={handleImportJSON}
+              onChange={handleRestoreFullBackup}
               className="hidden"
             />
           </div>
         </div>
       </div>
 
-      {/* Export Reports & CSV Downloads */}
+      {/* ========================================================================= */}
+      {/* 3. RELATÓRIOS CSV TRADICIONAIS */}
+      {/* ========================================================================= */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#DEE2E6] shadow-xs space-y-5">
         <div className="flex items-center gap-3 pb-3 border-b border-neutral-100">
           <div className="w-11 h-11 rounded-2xl bg-[#FAF7F2] border border-[#C5A059]/30 text-[#C5A059] flex items-center justify-center shrink-0">
@@ -187,34 +459,31 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onResetDemoData, o
           </div>
           <div>
             <h3 className="font-serif font-bold text-lg text-neutral-900">
-              Exportação de Relatórios Gerenciais (Planilhas CSV)
+              Relatório Geral em Planilha CSV
             </h3>
             <p className="text-xs text-neutral-500">
-              Gere relatórios tabulares para controle contábil, prestação de contas aos proprietários e auditoria.
+              Exportação tradicional de dados tabulares para controle financeiro e prestação de contas aos donos dos imóveis.
             </p>
           </div>
         </div>
 
         <div className="p-4 sm:p-6 rounded-2xl bg-[#FAF9F7] border border-[#DEE2E6] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
           <div className="space-y-1">
-            <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
-              <span>Relatório Completo de Imóveis & Bloqueios</span>
-              <span className="bg-[#C5A059]/10 text-[#C5A059] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border border-[#C5A059]/20">
-                Excel / Calc
-              </span>
+            <h4 className="text-sm font-bold text-neutral-900">
+              Exportação CSV Detalhada
             </h4>
             <p className="text-xs text-neutral-500 max-w-xl leading-relaxed">
-              Inclui diárias médias, taxas de limpeza, capacidades, endereços e a lista completa de períodos bloqueados no calendário.
+              Inclui diárias médias, taxas de limpeza, capacidades e histórico temporal de bloqueios.
             </p>
           </div>
 
           <button
             type="button"
-            onClick={handleExportCSV}
+            onClick={handleExportLegacyCSV}
             className="bg-[#002147] hover:bg-[#C5A059] text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xs shrink-0 min-h-[40px]"
           >
             <Download className="w-4 h-4" />
-            <span>Baixar Planilha CSV</span>
+            <span>Baixar CSV</span>
           </button>
         </div>
       </div>
@@ -268,7 +537,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onResetDemoData, o
                 Restaurar Catálogo Padrão de Demonstração
               </h3>
               <p className="text-xs text-rose-700 font-light mt-0.5">
-                Restaura o catálogo de demonstração curado de Palmas, TO (Orla 14, Graciosa, Centro) e redefine bloqueios iniciais.
+                Restaura o catálogo de demonstração de Palmas, TO (Orla 14, Graciosa, Centro) e redefine bloqueios iniciais.
               </p>
             </div>
           </div>
@@ -283,7 +552,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onResetDemoData, o
         </div>
       </div>
 
-      {/* Global Modern Confirmation Modal for Resetting Demo Data */}
+      {/* Global Confirmation Modal */}
       <ConfirmationModal
         isOpen={isConfirmingReset}
         title="Restaurar Catálogo de Demonstração"
@@ -293,7 +562,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onResetDemoData, o
         consequences={[
           'Todos os imóveis cadastrados manualmente nesta sessão serão sobrescritos.',
           'Os bloqueios manuais de calendário serão redefinidos para os períodos padrão.',
-          'Será restaurado o portfólio de 6 acomodações de alto padrão de Palmas, TO.',
         ]}
         confirmButtonText="Sim, Restaurar Catálogo"
         cancelButtonText="Cancelar"
