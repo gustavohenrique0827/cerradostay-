@@ -29,10 +29,13 @@ export const INITIAL_PROPERTIES: Property[] = [
       "pet_friendly",
       "familia"
     ],
-    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "coverImage": "/images/properties/prop-1788291000827-etwtp-cover.jpg",
     "images": [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+      "/images/properties/prop-1788291000827-etwtp-0.jpg",
+      "/images/properties/prop-1788291000827-etwtp-1.jpg",
+      "/images/properties/prop-1788291000827-etwtp-2.jpg",
+      "/images/properties/prop-1788291000827-etwtp-3.jpg",
+      "/images/properties/prop-1788291000827-etwtp-4.jpg"
     ],
     "pricePerNight": 330,
     "cleaningFee": 200,
@@ -86,10 +89,14 @@ export const INITIAL_PROPERTIES: Property[] = [
       "pet_friendly",
       "centro"
     ],
-    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "coverImage": "/images/properties/prop-1788290460988-0a4z5-cover.jpg",
     "images": [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+      "/images/properties/prop-1788290460988-0a4z5-0.jpg",
+      "/images/properties/prop-1788290460988-0a4z5-1.jpg",
+      "/images/properties/prop-1788290460988-0a4z5-2.jpg",
+      "/images/properties/prop-1788290460988-0a4z5-3.jpg",
+      "/images/properties/prop-1788290460988-0a4z5-4.jpg",
+      "/images/properties/prop-1788290460988-0a4z5-5.jpg"
     ],
     "pricePerNight": 250,
     "cleaningFee": 180,
@@ -145,10 +152,16 @@ export const INITIAL_PROPERTIES: Property[] = [
       "praia",
       "familia"
     ],
-    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "coverImage": "/images/properties/prop-1788289533150-gc4tb-cover.jpg",
     "images": [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+      "/images/properties/prop-1788289533150-gc4tb-0.jpg",
+      "/images/properties/prop-1788289533150-gc4tb-1.jpg",
+      "/images/properties/prop-1788289533150-gc4tb-2.jpg",
+      "/images/properties/prop-1788289533150-gc4tb-3.jpg",
+      "/images/properties/prop-1788289533150-gc4tb-4.jpg",
+      "/images/properties/prop-1788289533150-gc4tb-5.jpg",
+      "/images/properties/prop-1788289533150-gc4tb-6.jpg",
+      "/images/properties/prop-1788289533150-gc4tb-7.jpg"
     ],
     "pricePerNight": 485,
     "cleaningFee": 200,
@@ -201,10 +214,25 @@ export const INITIAL_PROPERTIES: Property[] = [
       "praia",
       "luxo"
     ],
-    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "coverImage": "/images/properties/prop-1788289211233-7e0lf-cover.jpg",
     "images": [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+      "/images/properties/prop-1788289211233-7e0lf-0.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-1.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-2.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-3.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-4.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-5.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-6.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-7.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-8.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-9.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-10.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-11.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-12.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-13.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-14.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-15.jpg",
+      "/images/properties/prop-1788289211233-7e0lf-16.jpg"
     ],
     "pricePerNight": 450,
     "cleaningFee": 0,
@@ -261,10 +289,22 @@ export const INITIAL_PROPERTIES: Property[] = [
       "luxo",
       "praia"
     ],
-    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "coverImage": "/images/properties/prop-1787863796660-7lutx-cover.jpg",
     "images": [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+      "/images/properties/prop-1787863796660-7lutx-0.jpg",
+      "/images/properties/prop-1787863796660-7lutx-1.jpg",
+      "/images/properties/prop-1787863796660-7lutx-2.jpg",
+      "/images/properties/prop-1787863796660-7lutx-3.jpg",
+      "/images/properties/prop-1787863796660-7lutx-4.jpg",
+      "/images/properties/prop-1787863796660-7lutx-5.jpg",
+      "/images/properties/prop-1787863796660-7lutx-6.jpg",
+      "/images/properties/prop-1787863796660-7lutx-7.jpg",
+      "/images/properties/prop-1787863796660-7lutx-8.jpg",
+      "/images/properties/prop-1787863796660-7lutx-9.jpg",
+      "/images/properties/prop-1787863796660-7lutx-10.jpg",
+      "/images/properties/prop-1787863796660-7lutx-11.jpg",
+      "/images/properties/prop-1787863796660-7lutx-12.jpg",
+      "/images/properties/prop-1787863796660-7lutx-13.jpg"
     ],
     "pricePerNight": 351,
     "cleaningFee": 180,
@@ -321,10 +361,19 @@ export const INITIAL_PROPERTIES: Property[] = [
       "centro",
       "pet_friendly"
     ],
-    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "coverImage": "/images/properties/prop-1787863529393-fe4vg-cover.jpg",
     "images": [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+      "/images/properties/prop-1787863529393-fe4vg-0.jpg",
+      "/images/properties/prop-1787863529393-fe4vg-1.jpg",
+      "/images/properties/prop-1787863529393-fe4vg-2.jpg",
+      "/images/properties/prop-1787863529393-fe4vg-3.jpg",
+      "/images/properties/prop-1787863529393-fe4vg-4.jpg",
+      "/images/properties/prop-1787863529393-fe4vg-5.jpg",
+      "/images/properties/prop-1787863529393-fe4vg-6.jpg",
+      "/images/properties/prop-1787863529393-fe4vg-7.jpg",
+      "/images/properties/prop-1787863529393-fe4vg-8.jpg",
+      "/images/properties/prop-1787863529393-fe4vg-9.jpg",
+      "/images/properties/prop-1787863529393-fe4vg-10.jpg"
     ],
     "pricePerNight": 451,
     "cleaningFee": 250,
@@ -668,10 +717,19 @@ class AtomicStorageEngine {
 
       const integrity = verifyJsonIntegrity(raw);
       if (integrity.isValid && integrity.data) {
-        if (Array.isArray(integrity.data) && integrity.data.length === 0) {
-          return INITIAL_PROPERTIES;
+        if (Array.isArray(integrity.data)) {
+          if (integrity.data.length === 0) {
+            return INITIAL_PROPERTIES;
+          }
+          // Se os dados em cache tiverem fotos provisórias do unsplash ou prop-1 antigo, atualizar para as fotos reais!
+          const hasPlaceholder = integrity.data.some((p: any) => p.coverImage?.includes('unsplash.com') || p.id === 'prop-1');
+          if (hasPlaceholder) {
+            console.info('AtomicStorageEngine - Atualizando fotos do catálogo para as fotos reais dos imóveis!');
+            this.saveProperties(INITIAL_PROPERTIES);
+            return INITIAL_PROPERTIES;
+          }
+          return integrity.data;
         }
-        return integrity.data;
       }
 
       console.warn('AtomicStorageEngine - Primary storage validation issue. Attempting recovery from backup...', integrity.error);
@@ -948,6 +1006,12 @@ export async function fetchProperties(): Promise<Property[]> {
   // Check IndexedDB first for unlimited storage capacity
   const idbList = await getPropertiesFromIndexedDB();
   if (idbList && idbList.length > 0) {
+    if (idbList.some(p => p.coverImage?.includes('unsplash.com') || p.id === 'prop-1')) {
+      console.info('fetchProperties - Atualizando IndexedDB para fotos reais dos imóveis!');
+      storageEngine.saveProperties(INITIAL_PROPERTIES);
+      return INITIAL_PROPERTIES;
+    }
+
     // Sync into localStorage cache if possible
     try {
       localStorage.setItem(PRIMARY_PROPERTIES_KEY, JSON.stringify(idbList));
