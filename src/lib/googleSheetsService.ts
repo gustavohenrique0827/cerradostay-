@@ -54,6 +54,36 @@ export function saveGoogleSheetsConfig(config: Partial<GoogleSheetsConfig>): Goo
  * Gera e faz download de um arquivo CSV formatado exclusivamente para abrir
  * perfeitamente no Google Planilhas (Google Sheets) com colunas organizadas para a equipe.
  */
+/**
+ * Converte qualquer caminho de imagem local ou relativo para uma URL pública absoluta,
+ * garantindo que a Planilha Google receba um link web real e clicável para as fotos.
+ */
+export function toPublicImageUrl(img: string): string {
+  if (!img) return '';
+  const trimmed = img.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/')) {
+    const origin = typeof window !== 'undefined' && window.location.origin && !window.location.origin.includes('localhost')
+      ? window.location.origin
+      : 'https://cerradostay.com.br';
+    return ;
+  }
+  return trimmed;
+}
+
+/**
+ * Limpa qualquer fórmula ou aspas de fórmulas do Excel/Google Sheets (como =HYPERLINK("...", "Ver Foto"))
+ */
+export function cleanImageUrl(val: string): string {
+  if (!val) return '';
+  const match = val.match(/https?:\/\/[^\s"'\)]+/i);
+  if (match) return match[0];
+  const stripped = val.replace(/^["'=]+|["'\)]+$/g, '').trim();
+  return stripped;
+}
+
 export function exportToGoogleSheetsCSV(
   properties: Property[],
   unavailabilities: PropertyUnavailability[] = []
@@ -140,8 +170,8 @@ export function exportToGoogleSheetsCSV(
       p.checkOutTime || '11:00',
       (p.amenities || []).join(', '),
       (p.houseRules || []).join('; '),
-      p.coverImage || '',
-      (p.images || []).join(' | '),
+      toPublicImageUrl(p.coverImage || ''),
+      (p.images || []).map(toPublicImageUrl).join(' | '),
       p.description || '',
       propBlocks || 'Nenhum bloqueio registrado'
     ];
@@ -197,7 +227,8 @@ export async function syncWithGoogleSheetsWebhook(
         neighborhood: p.neighborhood,
         city: p.city,
         state: p.state,
-        coverImage: p.coverImage,
+        coverImage: toPublicImageUrl(p.coverImage || ''),
+        images: (p.images || []).map(toPublicImageUrl).join(' | '),
         rating: p.rating,
         reviewsCount: p.reviewsCount,
         amenities: (p.amenities || []).join(', '),
@@ -257,14 +288,14 @@ function doPost(e) {
       sheet.appendRow([
         "ID", "Nome do Imóvel", "Status", "Diária (R$)", "Taxa Limpeza (R$)", 
         "Hóspedes", "Quartos", "Camas", "Banheiros", "Localização", "Cidade/UF", 
-        "Capa (URL)", "Avaliação", "Última Sincronização"
+        "Link Foto Capa", "Galeria de Fotos (Links)", "Avaliação", "Última Sincronização"
       ]);
-      sheet.getRange(1, 1, 1, 14).setFontWeight("bold").setBackground("#F4EFEA");
+      sheet.getRange(1, 1, 1, 15).setFontWeight("bold").setBackground("#F4EFEA");
     }
     
     // Limpar linhas antigas e reescrever catálogo atualizado
     if (sheet.getLastRow() > 1) {
-      sheet.getRange(2, 1, sheet.getLastRow() - 1, 14).clearContent();
+      sheet.getRange(2, 1, sheet.getLastRow() - 1, 15).clearContent();
     }
     
     if (data.properties && data.properties.length > 0) {
@@ -285,14 +316,15 @@ function doPost(e) {
           p.bathrooms,
           p.location,
           (p.city || "Palmas") + " - " + (p.state || "TO"),
-          p.coverImage,
-          p.rating,
+          p.coverImage || "",
+          p.images || "",
+          p.rating || 5.0,
           syncTime
         ]);
       }
       
       if (rows.length > 0) {
-        sheet.getRange(2, 1, rows.length, 14).setValues(rows);
+        sheet.getRange(2, 1, rows.length, 15).setValues(rows);
       }
     }
     
@@ -321,8 +353,20 @@ function doGet(e) {
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
       if (row[0] && row[1]) {
+        var propId = String(row[0]).trim();
+        var coverImg = String(row[11] || "").trim();
+        var galleryRaw = String(row[12] || "").trim();
+        var galleryList = galleryRaw ? galleryRaw.split("|").map(function(s) { return s.trim(); }).filter(Boolean) : [];
+        if (galleryList.length === 0 && coverImg) {
+          galleryList = [coverImg];
+        }
+
+        var fallbackCover = "/images/properties/" + propId + "-cover.jpg";
+        var finalCover = coverImg || fallbackCover;
+        var finalImages = galleryList.length > 0 ? galleryList : [finalCover];
+
         properties.push({
-          id: String(row[0]),
+          id: propId,
           name: String(row[1]),
           slug: String(row[1]).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
           status: String(row[2]).toLowerCase().indexOf("inativo") >= 0 ? "inactive" : "active",
@@ -338,17 +382,17 @@ function doGet(e) {
           city: "Palmas",
           state: "TO",
           address: String(row[9]) || "",
-          coverImage: String(row[11]) || "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=85",
-          images: [String(row[11]) || "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=85"],
-          rating: Number(row[12]) || 5.0,
-          reviewsCount: 12,
+          coverImage: finalCover,
+          images: finalImages,
+          rating: Number(row[13]) || 5.0,
+          reviewsCount: 15,
           badge: "Exclusivo Cerrado Stay",
           isSuperhost: true,
           amenities: ["Wi-Fi Fibra", "Ar-condicionado", "Piscina", "Cozinha Completa", "Estacionamento"],
           houseRules: ["Respeitar horário de silêncio após as 22h"],
-          checkInTime: "14:00",
+          checkInTime: "15:00",
           checkOutTime: "11:00",
-          category: ["casas", "apartamentos"],
+          category: ["apartamentos", "familia", "centro"],
           description: String(row[1]),
           longDescription: [String(row[1])],
           bookedDates: [],
@@ -446,7 +490,11 @@ export async function fetchPropertiesFromGoogleSheetsCsv(rawUrl: string): Promis
         const beds = parseInt(cols[9]) || 2;
         const bathrooms = parseInt(cols[10]) || 2;
         const location = cols[11] || 'Palmas - TO';
-        const coverImage = cols[24] || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=85';
+        const rawCover = cleanImageUrl(cols[24]) || (cols[11] ? cleanImageUrl(cols[11]) : '');
+        const coverImage = rawCover || `/images/properties/${id}-cover.jpg`;
+        const rawGalleryStr = cols[25] || cols[12] || '';
+        const galleryParsed = rawGalleryStr ? rawGalleryStr.split('|').map(s => cleanImageUrl(s)).filter(Boolean) : [];
+        const images = galleryParsed.length > 0 ? galleryParsed : [coverImage];
 
         properties.push({
           id,
@@ -463,7 +511,7 @@ export async function fetchPropertiesFromGoogleSheetsCsv(rawUrl: string): Promis
           status,
           category: ['casas', 'apartamentos'],
           coverImage,
-          images: [coverImage],
+          images,
           pricePerNight,
           cleaningFee,
           serviceFeePercentage: 10,
