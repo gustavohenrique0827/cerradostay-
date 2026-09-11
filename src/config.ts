@@ -34,7 +34,8 @@ export const BRAND_CONFIG = {
   defaultCheckOut: '11:00',
   serviceFeePercent: 0.10, // 10% taxa de serviço da plataforma
   
-  // URL de Contingência do Google Planilhas (Fallback invisível para quando o Supabase estiver fora do ar)
+  // URLs da Planilha Google (Webhook para sincronização ao cadastrar e Fallback de Contingência)
+  googleSheetsWebhookUrl: (import.meta.env as any)?.VITE_GOOGLE_SHEETS_API_URL || '',
   googleSheetsFallbackUrl: (import.meta.env as any)?.VITE_GOOGLE_SHEETS_FALLBACK_URL || '',
   
   // Links de navegação

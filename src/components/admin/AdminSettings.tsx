@@ -35,6 +35,7 @@ import {
   exportPropertiesBackup, 
   importPropertiesBackup,
   getCachedSupabaseStatus,
+  pullPropertiesFromGoogleSheets,
   SupabaseStatus
 } from '../../lib/dataService';
 import { 
@@ -118,6 +119,29 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onResetDemoData, o
       onToast(`Erro ao sincronizar: ${err?.message || 'Falha de rede'}`, 'error');
     } finally {
       setIsSyncingSheets(false);
+    }
+  };
+
+  const [isPullingSheets, setIsPullingSheets] = useState(false);
+
+  const handlePullFromSheets = async () => {
+    setIsPullingSheets(true);
+    try {
+      saveGoogleSheetsConfig({
+        webhookUrl: webhookInput.trim(),
+        publishedCsvUrl: csvUrlInput.trim(),
+      });
+      const res = await pullPropertiesFromGoogleSheets();
+      if (res.success) {
+        onToast(`Imóveis puxados com sucesso da Planilha Google! (${res.count} imóveis no ar)`, 'success');
+        window.dispatchEvent(new CustomEvent('cerrado_stays_properties_updated'));
+      } else {
+        onToast(`Não foi possível puxar da planilha: ${res.error}`, 'error');
+      }
+    } catch (err: any) {
+      onToast(`Erro ao carregar dados da planilha: ${err?.message || 'Falha de rede'}`, 'error');
+    } finally {
+      setIsPullingSheets(false);
     }
   };
 
@@ -325,15 +349,25 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onResetDemoData, o
               </p>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={handleManualSyncSheets}
-                disabled={isSyncingSheets}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
+                disabled={isSyncingSheets || isPullingSheets}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 min-h-[38px]"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncingSheets ? 'animate-spin' : ''}`} />
-                <span>{isSyncingSheets ? 'Sincronizando...' : 'Testar e Sincronizar Agora'}</span>
+                <span>{isSyncingSheets ? 'Sincronizando...' : 'Enviar Dados p/ Planilha'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePullFromSheets}
+                disabled={isPullingSheets || isSyncingSheets}
+                className="bg-neutral-800 hover:bg-neutral-900 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 min-h-[38px]"
+              >
+                <Download className={`w-3.5 h-3.5 ${isPullingSheets ? 'animate-spin' : ''}`} />
+                <span>{isPullingSheets ? 'Puxando...' : 'Puxar da Planilha p/ o Site'}</span>
               </button>
 
               {sheetsConfig.lastSyncDate && (

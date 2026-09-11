@@ -9,57 +9,352 @@ import {
 
 export const INITIAL_PROPERTIES: Property[] = [
   {
-    id: 'prop-1',
-    name: 'Casa Opus Reserva do Lago',
-    slug: 'casa-opus-reserva-do-lago',
-    tagline: 'Mansão de alto padrão com piscina de borda infinita e vista espetacular para o Lago de Palmas',
-    description: 'Uma verdadeira obra-prima da arquitetura contemporânea em Palmas. Projetada para proporcionar experiências inesquecíveis, com deck molhado, automação completa e acabamentos nobres.',
-    longDescription: [
-      'Localizada no condomínio mais exclusivo de Palmas, a Casa Opus Reserva do Lago une sofisticação, conforto térmico e integração total com a natureza do Cerrado.',
-      'A área de lazer conta com piscina privativa aquecida de borda infinita, espaço gourmet completo com churrasqueira a carvão e chopeira, além de som ambiente em todas as áreas sociais.'
+    "id": "prop-1788291000827-etwtp",
+    "name": "APARTAMENTO REGIÃO SUL",
+    "slug": "apartamento-regiao-sul",
+    "tagline": "APARTAMENTO REGIÃO SUL",
+    "description": "",
+    "longDescription": [
+      "Conforto e beleza em um só lugar\nApartamento com 2 quartos, ideal para até 4 pessoas, 1 banheiro, cozinha equipada, máquina de lavar, mesa de jantar e piscina. Destaque para a vista incrível da serra e do lago, perfeita para relaxar e aproveitar momentos inesquecíveis durante a estadia"
     ],
-    location: 'Reserva do Lago, Palmas - TO',
-    neighborhood: 'Reserva do Lago',
-    address: 'Alameda das Águas, 120',
-    city: 'Palmas',
-    state: 'TO',
-    status: 'active',
-    category: ['casas', 'luxo', 'familia'],
-    coverImage: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85',
-      'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=1200&q=85'
+    "location": "Plano diretor sul",
+    "neighborhood": "p",
+    "address": "Plano diretor sul",
+    "city": "Palmas",
+    "state": "TO",
+    "status": "active",
+    "category": [
+      "apartamentos",
+      "centro",
+      "pet_friendly",
+      "familia"
     ],
-    pricePerNight: 1450,
-    cleaningFee: 250,
-    serviceFeePercentage: 10,
-    maxGuests: 10,
-    bedrooms: 4,
-    beds: 5,
-    bathrooms: 5,
-    rating: 4.95,
-    reviewsCount: 38,
-    badge: 'Exclusivo Cerrado Stay',
-    isSuperhost: true,
-    amenities: ['Piscina Aquecida', 'Wi-Fi Fibra 500mb', 'Ar-condicionado Inverter', 'Cozinha Gourmet', 'Churrasqueira', 'Estacionamento 4 Vagas', 'Pet Friendly'],
-    houseRules: ['Proibido fumar nas áreas internas', 'Respeitar horário de silêncio após as 22h', 'Não são permitidas festas sem autorização prévia'],
-    checkInTime: '15:00',
-    checkOutTime: '11:00',
-    bookedDates: [],
-    reviews: [
-      {
-        id: 'rev-1',
-        authorName: 'Camila Mendonça',
-        authorLocation: 'Palmas - TO',
-        authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-        date: 'Agosto de 2026',
-        rating: 5,
-        comment: 'A casa é simplesmente deslumbrante! Fotos reais e idênticas ao local. O pôr do sol no lago de Palmas visto da piscina é inesquecível.'
-      }
+    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "images": [
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
     ],
-    coordinates: { lat: -10.1837, lng: -48.3582 },
-    createdAt: '2026-01-15T10:00:00.000Z'
+    "pricePerNight": 330,
+    "cleaningFee": 200,
+    "serviceFeePercentage": 10,
+    "maxGuests": 3,
+    "bedrooms": 2,
+    "beds": 2,
+    "bathrooms": 2,
+    "rating": 5,
+    "reviewsCount": 0,
+    "badge": "Destaque",
+    "isSuperhost": true,
+    "amenities": [
+      "Wi-Fi Ultra-Rápido",
+      "Cozinha Completa Equipada",
+      "Garagem Coberta",
+      "Fechadura Eletrônica Inteligente",
+      "Portaria / Segurança 24h",
+      "Pet Friendly",
+      "Smart TV 4K com Streaming"
+    ],
+    "houseRules": [],
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "bookedDates": [],
+    "reviews": [],
+    "coordinates": {
+      "lat": -10.1885,
+      "lng": -48.3325
+    },
+    "createdAt": "2026-09-01T19:30:04.115616+00:00"
+  },
+  {
+    "id": "prop-1788290460988-0a4z5",
+    "name": "APARTAMENTO AO LADO DO CAPIM DOURADO SHOPPING",
+    "slug": "apartamento-ao-lado-do-capim-dourado-shopping",
+    "tagline": "APARTAMENTO AO LADO DO CAPIM DOURADO SHOPPING",
+    "description": "",
+    "longDescription": [
+      "Conforto e beleza em um só lugar\nApartamento com 2 quartos, ideal para até 4 pessoas, 1 banheiro, cozinha equipada, máquina de lavar, mesa de jantar e piscina. Destaque para a vista incrível da serra e do lago, perfeita para relaxar e aproveitar momentos inesquecíveis durante a estadia"
+    ],
+    "location": "RESIDENCIAL PALMEIRA AZUL",
+    "neighborhood": "r",
+    "address": "RESIDENCIAL PALMEIRA AZUL",
+    "city": "Palmas",
+    "state": "TO",
+    "status": "active",
+    "category": [
+      "apartamentos",
+      "familia",
+      "pet_friendly",
+      "centro"
+    ],
+    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "images": [
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+    ],
+    "pricePerNight": 250,
+    "cleaningFee": 180,
+    "serviceFeePercentage": 10,
+    "maxGuests": 4,
+    "bedrooms": 2,
+    "beds": 3,
+    "bathrooms": 1,
+    "rating": 5,
+    "reviewsCount": 0,
+    "badge": "Destaque",
+    "isSuperhost": false,
+    "amenities": [
+      "Wi-Fi Ultra-Rápido",
+      "Máquina de Lavar / Secar",
+      "Fechadura Eletrônica Inteligente",
+      "Portaria / Segurança 24h",
+      "Pet Friendly",
+      "Cozinha Completa Equipada",
+      "Ar-Condicionado Inverter"
+    ],
+    "houseRules": [],
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "bookedDates": [],
+    "reviews": [],
+    "coordinates": {
+      "lat": -10.1698,
+      "lng": -48.344
+    },
+    "createdAt": "2026-09-01T19:21:04.882421+00:00"
+  },
+  {
+    "id": "prop-1788289533150-gc4tb",
+    "name": "Residencial Graciosa Beach",
+    "slug": "residencial-graciosa-beach",
+    "tagline": "APARTAMENTO A 100 M DA PRAIA",
+    "description": "APARTAMENTO A 100 M DA PRAIA",
+    "longDescription": [
+      "Seja bem-vindo ao seu refúgio em Palmas! \nNosso espaço foi cuidadosamente pensado para que você se sinta em casa seja em uma viagem a trabalho ou em momentos de lazer sob o sol tocantinense ☀️",
+      "✔️ TV Smart na sala e quartos \n✔️ Enxoval completo de cama e banho \n✔️ Cortinas termoacústicas garantindo conforto térmico e silêncio!\n✔️ Rootop \n✔️ Entrada facilitada com fechadura eletrônica. 🔑\n✔️ Cozinha completa com eletros de alto padrão",
+      "Espero que sua estadia seja confortável e inesquecível 💛"
+    ],
+    "location": "Graciosa",
+    "neighborhood": "G",
+    "address": "Graciosa",
+    "city": "Palmas",
+    "state": "TO",
+    "status": "active",
+    "category": [
+      "apartamentos",
+      "luxo",
+      "praia",
+      "familia"
+    ],
+    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "images": [
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+    ],
+    "pricePerNight": 485,
+    "cleaningFee": 200,
+    "serviceFeePercentage": 10,
+    "maxGuests": 4,
+    "bedrooms": 2,
+    "beds": 3,
+    "bathrooms": 2,
+    "rating": 5,
+    "reviewsCount": 0,
+    "badge": "Destaque",
+    "isSuperhost": false,
+    "amenities": [
+      "Wi-Fi Ultra-Rápido",
+      "Ar-Condicionado Inverter",
+      "Cozinha Completa Equipada",
+      "Máquina de Lavar / Secar",
+      "Vista Panorâmica para o Lago",
+      "Portaria / Segurança 24h"
+    ],
+    "houseRules": [],
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "bookedDates": [],
+    "reviews": [],
+    "coordinates": {
+      "lat": -10.1837,
+      "lng": -48.3582
+    },
+    "createdAt": "2026-09-01T19:05:37.85734+00:00"
+  },
+  {
+    "id": "prop-1788289211233-7e0lf",
+    "name": "Luxo e Conforto a 100 m da Praia",
+    "slug": "luxo-e-conforto-a-100-m-da-praia",
+    "tagline": "Luxo e Conforto a 100 m da Praia",
+    "description": "Luxo e Conforto a 100 m da Praia",
+    "longDescription": [
+      "Seja bem-vindo ao seu novo endereço favorito em Palmas! Localizado na cobiçada Orla da Graciosa, nosso apartamento combina a serenidade da vista para o lago com a conveniência de um condomínio de alto padrão. ☀️",
+      "Relaxe em uma suíte aconchegante com vista direta para o Lago. Desfrute de uma varanda gourmet no rooftop com jacuzzi, academia equipada e um salão de festas, tudo com uma vista panorâmica de tirar o fôlego. Cozinha completa, área de serviço, vaga de garagem e elevadores. 🏖️"
+    ],
+    "location": "Praia da Graciosa",
+    "neighborhood": "O",
+    "address": "Praia da Graciosa",
+    "city": "Palmas",
+    "state": "TO",
+    "status": "active",
+    "category": [
+      "apartamentos",
+      "praia",
+      "luxo"
+    ],
+    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "images": [
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+    ],
+    "pricePerNight": 450,
+    "cleaningFee": 0,
+    "serviceFeePercentage": 10,
+    "maxGuests": 4,
+    "bedrooms": 1,
+    "beds": 1,
+    "bathrooms": 1,
+    "rating": 5,
+    "reviewsCount": 0,
+    "badge": "Destaque",
+    "isSuperhost": false,
+    "amenities": [
+      "Wi-Fi Ultra-Rápido",
+      "Ar-Condicionado Inverter",
+      "Banheira / Jacuzzi Panorâmica",
+      "Máquina de Lavar / Secar",
+      "Vista Panorâmica para o Lago",
+      "Fechadura Eletrônica Inteligente",
+      "Píer / Acesso ao Lago",
+      "Cozinha Completa Equipada",
+      "Smart TV 4K com Streaming"
+    ],
+    "houseRules": [],
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "bookedDates": [],
+    "reviews": [],
+    "coordinates": {
+      "lat": -10.1837,
+      "lng": -48.3582
+    },
+    "createdAt": "2026-09-01T19:00:16.529947+00:00"
+  },
+  {
+    "id": "prop-1787863796660-7lutx",
+    "name": "LOFT YOU BY FAMA",
+    "slug": "loft-you-by-fama",
+    "tagline": "LOFT YOU BY FAMA",
+    "description": "",
+    "longDescription": [
+      "Studio Vista Lago | Orla de Palmas (You by Fama)",
+      "Viva o melhor de Palmas a passos da Praia da Graciosa! Studio 100% climatizado com vista incrível do lago, banheiro e cozinha completa com área de serviço, vaga privativa, lava e seca, air fryer, cafeteira, TV e Wi-Fi. Enxoval completo de cama e banho incluso.",
+      "Aproveite o rooftop de luxo com piscina de borda infinita, academia panorâmica e portaria 24h. Ideal para lazer ou trabalho com máximo conforto na Orla 14, perto dos melhores restaurantes. Garanta sua reserva!"
+    ],
+    "location": "Orla 14",
+    "neighborhood": "O",
+    "address": "Orla 14",
+    "city": "Palmas",
+    "state": "TO",
+    "status": "active",
+    "category": [
+      "apartamentos",
+      "luxo",
+      "praia"
+    ],
+    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "images": [
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+    ],
+    "pricePerNight": 351,
+    "cleaningFee": 180,
+    "serviceFeePercentage": 10,
+    "maxGuests": 2,
+    "bedrooms": 1,
+    "beds": 1,
+    "bathrooms": 1,
+    "rating": 5,
+    "reviewsCount": 0,
+    "badge": "Destaque",
+    "isSuperhost": true,
+    "amenities": [
+      "Wi-Fi Ultra-Rápido",
+      "Ar-Condicionado Inverter",
+      "Máquina de Lavar / Secar",
+      "Píer / Acesso ao Lago",
+      "Espaço Home Office",
+      "Fechadura Eletrônica Inteligente",
+      "Portaria / Segurança 24h",
+      "Cozinha Completa Equipada"
+    ],
+    "houseRules": [],
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "bookedDates": [],
+    "reviews": [],
+    "coordinates": {
+      "lat": -10.1837,
+      "lng": -48.3582
+    },
+    "createdAt": "2026-08-27T20:49:59.239723+00:00"
+  },
+  {
+    "id": "prop-1787863529393-fe4vg",
+    "name": "Casa Mosaico",
+    "slug": "casa-mosaico",
+    "tagline": "Casa Mosaico",
+    "description": "",
+    "longDescription": [
+      "Casa Mosaico | Design Exclusivo, Varanda Gourmet & Conforto Total",
+      "Procurando uma experiência única e inesquecível? A Casa Mosaico combina sofisticação, charme e o acolhimento perfeito para os seus dias de descanso ou trabalho. Um refúgio 100% climatizado, onde cada detalhe foi pensado para encantar.",
+      "O que espera por você:\nVaranda Gourmet dos Sonhos: O cenário ideal para relaxar ou celebrar, equipado com churrasqueira a carvão.\nConforto Absoluto: 2 quartos aconchegantes (sendo 1 suíte privativa), ambos com ar-condicionado. Enxoval completo com roupas de cama e toalhas macias já inclusos.\nCozinha Completa & Prática: Totalmente equipada com utensílios, air fryer e cafeteira para o seu café da manhã perfeito.\nConectividade & Lazer: Sala de estar confortável com TV e Wi-Fi de alta velocidade para streaming ou home office.\nPraticidade & Segurança: Garagem privativa e exclusiva no local.\nSeja para uma viagem em família, um encontro a dois ou uma pausa na rotina, a Casa Mosaico é o seu lugar. Datas disponíveis — garanta já a sua reserva!"
+    ],
+    "location": "Plano diretor Sul",
+    "neighborhood": "P",
+    "address": "Plano diretor Sul",
+    "city": "Palmas",
+    "state": "TO",
+    "status": "active",
+    "category": [
+      "casas",
+      "familia",
+      "centro",
+      "pet_friendly"
+    ],
+    "coverImage": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+    "images": [
+      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1200&q=85",
+      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=85"
+    ],
+    "pricePerNight": 451,
+    "cleaningFee": 250,
+    "serviceFeePercentage": 10,
+    "maxGuests": 4,
+    "bedrooms": 2,
+    "beds": 2,
+    "bathrooms": 2,
+    "rating": 5,
+    "reviewsCount": 0,
+    "badge": "Destaque",
+    "isSuperhost": true,
+    "amenities": [
+      "Wi-Fi Ultra-Rápido",
+      "Ar-Condicionado Inverter",
+      "Churrasqueira Gourmet",
+      "Garagem Coberta",
+      "Cozinha Completa Equipada",
+      "Smart TV 4K com Streaming"
+    ],
+    "houseRules": [],
+    "checkInTime": "15:00",
+    "checkOutTime": "11:00",
+    "bookedDates": [],
+    "reviews": [],
+    "coordinates": {
+      "lat": -10.1885,
+      "lng": -48.3325
+    },
+    "createdAt": "2026-08-27T20:45:31.516583+00:00"
   }
 ];
 
@@ -591,6 +886,61 @@ export function getCachedSupabaseStatus(): SupabaseStatus {
   return cachedSupabaseStatus;
 }
 
+async function fetchDefaultPropertiesBackup(): Promise<Property[]> {
+  try {
+    const res = await fetch('/data/defaultProperties.json');
+    if (res.ok) {
+      const defaultProps = await res.json();
+      if (Array.isArray(defaultProps) && defaultProps.length > 0) {
+        storageEngine.saveProperties(defaultProps);
+        return defaultProps;
+      }
+    }
+  } catch (err) {
+    console.warn('fetchDefaultPropertiesBackup notice:', err);
+  }
+  return [];
+}
+
+async function tryFetchFromGoogleSheets(): Promise<Property[] | null> {
+  try {
+    const sheetCfg = getGoogleSheetsConfig();
+    const targetUrl = sheetCfg.webhookUrl || sheetCfg.publishedCsvUrl;
+    if (targetUrl) {
+      const sheetProps = await fetchPropertiesFromGoogleSheetsCsv(targetUrl);
+      if (sheetProps && Array.isArray(sheetProps) && sheetProps.length > 0) {
+        console.info(`fetchProperties - Carregados ${sheetProps.length} imóveis diretamente da Planilha Google!`);
+        storageEngine.saveProperties(sheetProps);
+        return sheetProps;
+      }
+    }
+  } catch (sheetErr) {
+    console.warn('fetchProperties - Falha ao consultar Planilha Google:', sheetErr);
+  }
+  return null;
+}
+
+/**
+ * Puxa manualmente ou sob demanda os imóveis da Planilha Google e atualiza a base do site.
+ */
+export async function pullPropertiesFromGoogleSheets(): Promise<{ success: boolean; count: number; error?: string }> {
+  try {
+    const sheetCfg = getGoogleSheetsConfig();
+    const targetUrl = sheetCfg.webhookUrl || sheetCfg.publishedCsvUrl;
+    if (!targetUrl) {
+      return { success: false, count: 0, error: 'Nenhuma URL da Planilha Google configurada.' };
+    }
+    const sheetProps = await fetchPropertiesFromGoogleSheetsCsv(targetUrl);
+    if (!sheetProps || sheetProps.length === 0) {
+      return { success: false, count: 0, error: 'Nenhum imóvel encontrado na Planilha Google.' };
+    }
+    storageEngine.saveProperties(sheetProps);
+    return { success: true, count: sheetProps.length };
+  } catch (err: any) {
+    return { success: false, count: 0, error: err?.message || 'Falha ao buscar da planilha' };
+  }
+}
+
 /**
  * Fetches all properties using IndexedDB / atomic local storage with optional Supabase background synchronization.
  */
@@ -604,7 +954,10 @@ export async function fetchProperties(): Promise<Property[]> {
     } catch {}
     
     const supabase = getSupabase();
-    if (!supabase) return idbList;
+    if (!supabase) {
+      const sheetProps = await tryFetchFromGoogleSheets();
+      return sheetProps || idbList;
+    }
 
     try {
       const { data, error } = await supabase
@@ -619,6 +972,12 @@ export async function fetchProperties(): Promise<Property[]> {
         } else {
           cachedSupabaseStatus = 'offline';
         }
+
+        // Tentar obter a versão mais recente da Planilha Google caso o Supabase falhe
+        const sheetProps = await tryFetchFromGoogleSheets();
+        if (sheetProps && sheetProps.length > 0) {
+          return sheetProps;
+        }
       } else if (data && Array.isArray(data) && data.length > 0) {
         cachedSupabaseStatus = 'active';
         const mappedList = data.map(mapDbToProperty);
@@ -627,6 +986,10 @@ export async function fetchProperties(): Promise<Property[]> {
       }
     } catch (err) {
       console.warn('fetchProperties - Supabase sync fallback to IndexedDB:', err);
+      const sheetProps = await tryFetchFromGoogleSheets();
+      if (sheetProps && sheetProps.length > 0) {
+        return sheetProps;
+      }
     }
 
     return idbList;
@@ -636,6 +999,14 @@ export async function fetchProperties(): Promise<Property[]> {
   const supabase = getSupabase();
 
   if (!supabase) {
+    const sheetProps = await tryFetchFromGoogleSheets();
+    if (sheetProps && sheetProps.length > 0) {
+      return sheetProps;
+    }
+    if (localList.length <= 1) {
+      const defaultProps = await fetchDefaultPropertiesBackup();
+      if (defaultProps.length > 0) return defaultProps;
+    }
     return localList;
   }
 
@@ -654,18 +1025,16 @@ export async function fetchProperties(): Promise<Property[]> {
         console.warn('fetchProperties - Supabase notice, using verified local storage:', error.message);
       }
 
-      // Se a lista local estiver vazia ou só com o demo inicial, tentar fallback do Google Sheets caso configurado
+      // Tentar obter da Planilha Google
+      const sheetProps = await tryFetchFromGoogleSheets();
+      if (sheetProps && sheetProps.length > 0) {
+        return sheetProps;
+      }
+
+      // Se a lista local estiver vazia ou só com o demo inicial, carregar catálogo padrão dos 6 imóveis reais
       if (localList.length <= 1) {
-        try {
-          const sheetCfg = getGoogleSheetsConfig();
-          if (sheetCfg.publishedCsvUrl) {
-            const sheetProps = await fetchPropertiesFromGoogleSheetsCsv(sheetCfg.publishedCsvUrl);
-            if (sheetProps.length > 0) {
-              storageEngine.saveProperties(sheetProps);
-              return sheetProps;
-            }
-          }
-        } catch {}
+        const defaultProps = await fetchDefaultPropertiesBackup();
+        if (defaultProps.length > 0) return defaultProps;
       }
 
       return localList;
@@ -678,10 +1047,19 @@ export async function fetchProperties(): Promise<Property[]> {
       return mappedList;
     }
 
+    // Se Supabase retornou array vazio, fallback para local ou Planilha Google
+    const sheetProps = await tryFetchFromGoogleSheets();
+    if (sheetProps && sheetProps.length > 0) {
+      return sheetProps;
+    }
+
     return localList;
   } catch (err) {
-    cachedSupabaseStatus = 'offline';
-    console.warn('fetchProperties - Remote sync handled, using local storage:', err);
+    console.warn('fetchProperties - Supabase exception, fallback local:', err);
+    const sheetProps = await tryFetchFromGoogleSheets();
+    if (sheetProps && sheetProps.length > 0) {
+      return sheetProps;
+    }
     return localList;
   }
 }

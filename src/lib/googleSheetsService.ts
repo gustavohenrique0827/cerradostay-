@@ -14,7 +14,7 @@ const GOOGLE_SHEETS_CONFIG_KEY = 'cerrado_google_sheets_config_v1';
  * Retorna as configurações salvas da Planilha Google.
  */
 export function getGoogleSheetsConfig(): GoogleSheetsConfig {
-  let webhookUrl = (import.meta.env as any)?.VITE_GOOGLE_SHEETS_API_URL || '';
+  let webhookUrl = (import.meta.env as any)?.VITE_GOOGLE_SHEETS_API_URL || (BRAND_CONFIG as any).googleSheetsWebhookUrl || '';
   let publishedCsvUrl = (import.meta.env as any)?.VITE_GOOGLE_SHEETS_FALLBACK_URL || BRAND_CONFIG.googleSheetsFallbackUrl || '';
   let autoSync = true;
   let lastSyncDate: string | undefined = undefined;
