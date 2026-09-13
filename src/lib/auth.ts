@@ -1,8 +1,16 @@
 
 export const isAdminAuthenticated = (): boolean => {
-  return localStorage.getItem('admin_authenticated') === 'true';
+  try {
+    return typeof window !== 'undefined' && localStorage.getItem('admin_authenticated') === 'true';
+  } catch {
+    return false;
+  }
 };
 
 export const adminLogout = (): void => {
-  localStorage.setItem('admin_authenticated', 'false');
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('admin_authenticated', 'false');
+    }
+  } catch {}
 };

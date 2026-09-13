@@ -47,23 +47,49 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     }
   };
 
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) {
+        // Swipe left -> next image
+        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+      } else {
+        // Swipe right -> prev image
+        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+      }
+    }
+    setTouchStartX(null);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-20px' }}
+      viewport={{ once: true }}
       transition={{ duration: 0.35 }}
       onClick={handleCardClick}
       id={`property-card-${property.id}`}
-      className="group bg-white rounded-2xl overflow-hidden border border-[#DEE2E6] hover:border-[#C5A059]/40 transition-all duration-300 hover:shadow-xl flex flex-col cursor-pointer"
+      className="group bg-white rounded-2xl overflow-hidden border border-[#DEE2E6] hover:border-[#C5A059]/40 transition-all duration-300 hover:shadow-xl flex flex-col cursor-pointer touch-manipulation"
     >
       {/* Image Gallery Container */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+      <div 
+        className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <img
           src={getOptimizedImageUrl(images[currentImageIndex], 400)}
           alt={property.name}
           loading="lazy"
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out select-none"
         />
 
         {/* Gradient vignette on image */}
@@ -100,7 +126,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <button
               type="button"
               onClick={handlePrevImage}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-neutral-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-md z-10"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-neutral-800 flex items-center justify-center opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 shadow-md z-10"
               aria-label="Foto anterior"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -108,7 +134,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             <button
               type="button"
               onClick={handleNextImage}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-neutral-800 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-md z-10"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-neutral-800 flex items-center justify-center opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 shadow-md z-10"
               aria-label="Próxima foto"
             >
               <ChevronRight className="w-4 h-4" />

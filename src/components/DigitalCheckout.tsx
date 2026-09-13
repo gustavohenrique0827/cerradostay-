@@ -8,6 +8,7 @@ import {
   ExternalLink, Calendar, Users, RefreshCw
 } from 'lucide-react';
 import { getSavedBookings, findBookingByCode, updateBookingStatus } from '../utils/bookingStorage';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface DigitalCheckoutProps {
   onToast: (msg: string) => void;
@@ -70,8 +71,8 @@ export const DigitalCheckout: React.FC<DigitalCheckoutProps> = ({ onToast, onOpe
     onToast('Check-out concluído com sucesso! Obrigado pela sua estadia com a Cerrado Stay.');
   };
 
-  const handleCopyText = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
+  const handleCopyText = async (text: string, id: string) => {
+    await copyToClipboard(text);
     setCopiedKey(id);
     setTimeout(() => setCopiedKey(null), 2000);
     onToast('Copiado para a área de transferência!');

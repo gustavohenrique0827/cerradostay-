@@ -3,7 +3,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, X } from 'lucide-react';
 import { getWhatsAppUrl, BRAND_CONFIG } from '../config';
 
-export const WhatsAppFloatingButton: React.FC = () => {
+interface WhatsAppFloatingButtonProps {
+  isDetailOpen?: boolean;
+}
+
+export const WhatsAppFloatingButton: React.FC<WhatsAppFloatingButtonProps> = ({ isDetailOpen = false }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [hasBeenDismissed, setHasBeenDismissed] = useState(false);
 
@@ -25,15 +29,18 @@ export const WhatsAppFloatingButton: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 pointer-events-none" id="whatsapp-floating-container">
+    <div 
+      className={`fixed ${isDetailOpen ? 'bottom-20 sm:bottom-6' : 'bottom-6'} right-4 sm:right-6 z-50 flex flex-col items-end gap-3 pointer-events-none transition-all duration-300`} 
+      id="whatsapp-floating-container"
+    >
       {/* Interactive Tooltip Card - More Discreet */}
       <AnimatePresence>
         {showTooltip && !hasBeenDismissed && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 10, x: 20 }}
+            initial={{ opacity: 0, scale: 0.9, y: 10, x: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 10, x: 20 }}
-            className="pointer-events-auto bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-[#C5A059]/30 p-4 max-w-[280px] relative group"
+            exit={{ opacity: 0, scale: 0.9, y: 10, x: 10 }}
+            className="pointer-events-auto bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-[#C5A059]/30 p-4 w-[280px] max-w-[calc(100vw-3rem)] relative group"
           >
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">

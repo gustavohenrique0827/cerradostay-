@@ -97,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
         </nav>
 
         {/* Right CTA / Action Area */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-3">
           {onOpenAdmin && (
             <button
               onClick={onOpenAdmin}
@@ -147,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Mobile Hamburger Button */}
-        <div className="flex md:hidden items-center gap-2">
+        <div className="flex lg:hidden items-center gap-2">
           {onOpenFavorites && favoritesCount > 0 && (
             <button
               onClick={onOpenFavorites}

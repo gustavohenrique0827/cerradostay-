@@ -19,15 +19,19 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, initialFilters }
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Close popover when clicking outside
+  // Close popover when clicking or tapping outside
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setActivePopover(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   const totalGuests = adults + childrenCount;
@@ -93,7 +97,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, initialFilters }
                   e.stopPropagation();
                   setActivePopover('destination');
                 }}
-                className="text-[13px] font-bold text-[#00152B] placeholder:text-neutral-300 bg-transparent outline-none w-full truncate cursor-pointer"
+                className="text-base md:text-[13px] font-bold text-[#00152B] placeholder:text-neutral-300 bg-transparent outline-none w-full truncate cursor-pointer"
               />
             </div>
           </div>
@@ -105,7 +109,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, initialFilters }
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 15 }}
-                className="absolute top-full left-0 mt-4 w-80 sm:w-96 bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.25)] border border-neutral-100 p-4 z-50 text-left"
+                className="absolute top-full left-0 right-0 sm:right-auto mt-4 w-full sm:w-96 max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.25)] border border-neutral-100 p-4 z-50 text-left"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* ... existing popover content ... */}
@@ -184,7 +188,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, initialFilters }
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 15 }}
-                className="absolute top-full right-0 md:-left-20 mt-4 w-80 sm:w-96 bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.25)] border border-neutral-100 p-5 z-50 text-left"
+                className="absolute top-full left-0 right-0 sm:right-auto md:-left-20 mt-4 w-full sm:w-96 max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.25)] border border-neutral-100 p-5 z-50 text-left"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* ... existing dates popover content ... */}
@@ -204,7 +208,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, initialFilters }
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="text-[9px] font-bold text-neutral-400 uppercase block mb-1.5 ml-1">Check-in</label>
                     <input
@@ -217,7 +221,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, initialFilters }
                           setCheckOut(null);
                         }
                       }}
-                      className="w-full text-xs font-bold px-3 py-2.5 border border-neutral-100 bg-neutral-50 rounded-xl focus:bg-white focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/10 outline-none transition-all"
+                      className="w-full text-base sm:text-xs font-bold px-3 py-2.5 border border-neutral-100 bg-neutral-50 rounded-xl focus:bg-white focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/10 outline-none transition-all"
                     />
                   </div>
                   <div>
@@ -227,7 +231,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, initialFilters }
                       min={checkIn || new Date().toISOString().split('T')[0]}
                       value={checkOut || ''}
                       onChange={(e) => setCheckOut(e.target.value)}
-                      className="w-full text-xs font-bold px-3 py-2.5 border border-neutral-100 bg-neutral-50 rounded-xl focus:bg-white focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/10 outline-none transition-all"
+                      className="w-full text-base sm:text-xs font-bold px-3 py-2.5 border border-neutral-100 bg-neutral-50 rounded-xl focus:bg-white focus:border-[#C5A059] focus:ring-2 focus:ring-[#C5A059]/10 outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -295,7 +299,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({ onSearch, initialFilters }
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 15 }}
-                className="absolute top-full right-0 mt-4 w-72 bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.25)] border border-neutral-100 p-5 z-50 text-left"
+                className="absolute top-full left-0 right-0 sm:left-auto sm:right-0 mt-4 w-full sm:w-72 max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.25)] border border-neutral-100 p-5 z-50 text-left"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* ... existing guests content ... */}

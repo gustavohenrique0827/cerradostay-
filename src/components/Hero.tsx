@@ -5,6 +5,8 @@ import { SearchBar } from './SearchBar';
 import { SearchFilterState } from '../types';
 import { getWhatsAppUrl } from '../config';
 
+import { openExternalUrl } from '../utils/mobileUtils';
+
 interface HeroProps {
   onSearch: (filter: SearchFilterState) => void;
   initialFilters?: Partial<SearchFilterState>;
@@ -69,14 +71,14 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, initialFilters }) => {
         >
           <button
             onClick={scrollToProperties}
-            className="bg-[#C5A059] hover:bg-[#D4AF37] text-white px-8 py-4 rounded-xl font-bold text-[10px] tracking-[0.15em] uppercase transition-all shadow-2xl hover:shadow-[#C5A059]/20 hover:-translate-y-0.5 active:scale-95 cursor-pointer"
+            className="bg-[#C5A059] hover:bg-[#D4AF37] text-white px-8 py-4 rounded-xl font-bold text-[10px] tracking-[0.15em] uppercase transition-all shadow-2xl hover:shadow-[#C5A059]/20 hover:-translate-y-0.5 active:scale-95 cursor-pointer touch-manipulation"
           >
             Ver Acomodações
           </button>
           
           <button
-            onClick={() => window.open(getWhatsAppUrl('Olá! Gostaria de tirar algumas dúvidas sobre as acomodações.'), '_blank')}
-            className="bg-white/5 hover:bg-white/10 backdrop-blur-md text-white border border-white/10 px-8 py-4 rounded-xl font-bold text-[10px] tracking-[0.15em] uppercase transition-all flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer"
+            onClick={() => openExternalUrl(getWhatsAppUrl('Olá! Gostaria de tirar algumas dúvidas sobre as acomodações.'))}
+            className="bg-white/5 hover:bg-white/10 backdrop-blur-md text-white border border-white/10 px-8 py-4 rounded-xl font-bold text-[10px] tracking-[0.15em] uppercase transition-all flex items-center gap-2 hover:-translate-y-0.5 cursor-pointer touch-manipulation"
           >
             Falar com Concierge
           </button>

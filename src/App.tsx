@@ -680,7 +680,7 @@ export default function App() {
       )}
 
       {/* Global Floating WhatsApp Contact Widget */}
-      <WhatsAppFloatingButton />
+      <WhatsAppFloatingButton isDetailOpen={!!selectedProperty} />
 
       {/* Global 4-Column Luxury Footer with Admin Access Link */}
       <Footer

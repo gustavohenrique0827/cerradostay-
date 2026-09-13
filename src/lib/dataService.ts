@@ -684,13 +684,21 @@ async function savePropertiesToIndexedDB(properties: Property[]): Promise<boolea
 
 async function getPropertiesFromIndexedDB(): Promise<Property[] | null> {
   try {
-    const db = await openIndexedDB();
-    return new Promise((resolve, reject) => {
-      const transaction = db.transaction(IDB_STORE, 'readonly');
-      const store = transaction.objectStore(IDB_STORE);
-      const request = store.getAll();
-      request.onsuccess = () => resolve(request.result || []);
-      request.onerror = () => reject(request.error);
+    const dbPromise = openIndexedDB();
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 800));
+    const db = await Promise.race([dbPromise, timeoutPromise]);
+    if (!db) return null;
+
+    return new Promise((resolve) => {
+      try {
+        const transaction = db.transaction(IDB_STORE, 'readonly');
+        const store = transaction.objectStore(IDB_STORE);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => resolve(null);
+      } catch {
+        resolve(null);
+      }
     });
   } catch (e) {
     console.warn('IndexedDB read notice:', e);
@@ -1337,7 +1345,7 @@ export function subscribeToProperties(callback: (payload: any) => void) {
   }
 
   const supabase = getSupabase();
-  if (!supabase) {
+  if (!supabase || cachedSupabaseStatus === 'quota_restricted') {
     return {
       unsubscribe: () => {
         if (typeof window !== 'undefined') {
@@ -1360,11 +1368,20 @@ export function subscribeToProperties(callback: (payload: any) => void) {
           window.removeEventListener('cerrado_stays_properties_updated', handleLocalUpdate);
           window.removeEventListener('storage', handleLocalUpdate);
         }
-        supabase.removeChannel(channel);
+        try {
+          supabase.removeChannel(channel);
+        } catch {}
       },
     };
   } catch {
-    return null;
+    return {
+      unsubscribe: () => {
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('cerrado_stays_properties_updated', handleLocalUpdate);
+          window.removeEventListener('storage', handleLocalUpdate);
+        }
+      },
+    };
   }
 }
 

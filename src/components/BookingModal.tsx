@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { BRAND_CONFIG, getPropertyWhatsAppBookingUrl } from '../config';
 import { saveBooking } from '../utils/bookingStorage';
+import { openExternalUrl } from '../utils/mobileUtils';
+import { copyToClipboard } from '../utils/clipboard';
 
 type PaymentOption = 'pix' | 'credit_card' | 'debit_card' | 'boleto';
 
@@ -168,8 +170,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     };
     saveBooking(newInquiry);
 
-    // 3. Open WhatsApp in new window/tab
-    window.open(url, '_blank');
+    // 3. Open WhatsApp reliably across all Android / iOS devices
+    openExternalUrl(url);
 
     // 4. Update UI to Sent state
     setStep('sent');
@@ -178,9 +180,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
   };
 
-  const handleCopyMessage = () => {
+  const handleCopyMessage = async () => {
     const text = `Solicitação de Reserva Cerrado Stay (${requestCode})\nImóvel: ${property.name}\nPeríodo: ${formatDateDisplay(checkIn)} a ${formatDateDisplay(checkOut)} (${nights} noites)\nHóspedes: ${totalGuests}\nValor Total Estimado: R$ ${totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    navigator.clipboard.writeText(text);
+    await copyToClipboard(text);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
     if (onSuccessToast) {

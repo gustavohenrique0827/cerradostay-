@@ -15,6 +15,8 @@ import { BookingModal } from './BookingModal';
 import { BRAND_CONFIG, getPropertyWhatsAppBookingUrl } from '../config';
 import { getGoogleMapsSearchUrl, getGoogleMapsDirectionsUrl, getGoogleMapsEmbedUrl } from '../utils/geoUtils';
 import { addPropertyReview } from '../lib/dataService';
+import { openExternalUrl } from '../utils/mobileUtils';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface PropertyDetailViewProps {
   property: Property;
@@ -142,12 +144,12 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
   const handleShareWhatsApp = () => {
     const url = window.location.href;
     const text = encodeURIComponent(`Confira este imóvel incrível para nossa próxima estadia: ${property.name} em ${property.city}!\n${url}`);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    openExternalUrl(`https://wa.me/?text=${text}`);
     setShowShareMenu(false);
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+  const handleCopyLink = async () => {
+    await copyToClipboard(window.location.href);
     onToast('Link do imóvel copiado para a área de transferência!');
     setShowShareMenu(false);
   };
