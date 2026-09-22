@@ -86,7 +86,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         onTouchEnd={handleTouchEnd}
       >
         <img
-          src={getOptimizedImageUrl(images[currentImageIndex], 400)}
+          src={getOptimizedImageUrl(images[currentImageIndex], 800)}
           alt={property.name}
           loading="lazy"
           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out select-none"

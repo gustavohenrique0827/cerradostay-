@@ -1,4 +1,4 @@
-export const getOptimizedImageUrl = (url: string, width: number = 400) => {
+export const getOptimizedImageUrl = (url: string, width: number = 800) => {
   if (!url || typeof url !== 'string' || !url.includes('supabase.co')) return url;
   // If already has query params, append, otherwise add
   const separator = url.includes('?') ? '&' : '?';
