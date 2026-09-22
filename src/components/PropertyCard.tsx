@@ -21,6 +21,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = property.images && property.images.length > 0 ? property.images : [property.coverImage];
+  // Prefer lightweight card thumbnails when available (only set for admin-uploaded photos
+  // with a matching count); falls back to the full image for legacy/static photos.
+  const cardImages = property.thumbnails && property.thumbnails.length === images.length
+    ? property.thumbnails
+    : images;
 
   const handleCardClick = () => {
     if (typeof onSelect === 'function') {
@@ -86,7 +91,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         onTouchEnd={handleTouchEnd}
       >
         <img
-          src={getOptimizedImageUrl(images[currentImageIndex], 800)}
+          src={getOptimizedImageUrl(cardImages[currentImageIndex], 800)}
           alt={property.name}
           loading="lazy"
           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out select-none"

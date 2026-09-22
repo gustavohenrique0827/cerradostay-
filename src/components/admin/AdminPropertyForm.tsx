@@ -134,6 +134,18 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
   const [images, setImages] = useState<string[]>(
     property?.images || []
   );
+  // Maps a full/large image (as stored in `images`) to its lightweight card thumbnail.
+  const [thumbMap, setThumbMap] = useState<Record<string, string>>(() => {
+    const map: Record<string, string> = {};
+    const initialImages = property?.images || [];
+    const initialThumbs = property?.thumbnails || [];
+    if (initialThumbs.length === initialImages.length) {
+      initialImages.forEach((img, i) => {
+        if (initialThumbs[i]) map[img] = initialThumbs[i];
+      });
+    }
+    return map;
+  });
   const [newImageUrl, setNewImageUrl] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessingImages, setIsProcessingImages] = useState(false);
@@ -228,47 +240,51 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
     };
   }, [onCancel]);
 
-  // Image Resizing and Optimization using HTML5 Canvas
-  const resizeAndOptimizeImage = (file: File): Promise<string> => {
+  // Image Resizing and Optimization using HTML5 Canvas.
+  // Produces two versions: a "large" one (gallery/zoom/cover) and a much smaller
+  // "thumb" one (cards/listing), so listings don't have to decode the full-size
+  // photo just to render a small grid tile — this is what keeps card grids light
+  // on Android even as gallery photos stay high quality.
+  const resizeAndOptimizeImage = (file: File): Promise<{ large: string; thumb: string }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (readerEvent) => {
         const img = new Image();
         img.onload = () => {
-          const maxWidth = 1600;
-          const maxHeight = 1200;
-          let width = img.width;
-          let height = img.height;
+          const renderVersion = (maxWidth: number, maxHeight: number, quality: number): string | null => {
+            let width = img.width;
+            let height = img.height;
 
-          if (width > maxWidth || height > maxHeight) {
-            if (width / height > maxWidth / maxHeight) {
-              height = Math.round((height * maxWidth) / width);
-              width = maxWidth;
-            } else {
-              width = Math.round((width * maxHeight) / height);
-              height = maxHeight;
+            if (width > maxWidth || height > maxHeight) {
+              if (width / height > maxWidth / maxHeight) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+              } else {
+                width = Math.round((width * maxHeight) / height);
+                height = maxHeight;
+              }
             }
-          }
 
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            resolve(readerEvent.target?.result as string);
-            return;
-          }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return null;
 
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'medium';
-          ctx.drawImage(img, 0, 0, width, height);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+            return canvas.toDataURL('image/jpeg', quality);
+          };
 
-          // Output web-ready JPEG (IndexedDB backs storage, so quality no longer needs to be this aggressive)
-          const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
-          resolve(optimizedDataUrl);
+          const fallback = readerEvent.target?.result as string;
+          const large = renderVersion(1600, 1200, 0.88) || fallback;
+          const thumb = renderVersion(480, 360, 0.7) || large;
+          resolve({ large, thumb });
         };
         img.onerror = () => {
-          resolve(readerEvent.target?.result as string);
+          const fallback = readerEvent.target?.result as string;
+          resolve({ large: fallback, thumb: fallback });
         };
         img.src = readerEvent.target?.result as string;
       };
@@ -285,11 +301,13 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
     setProcessingProgress(`Otimizando 1 de ${validFiles.length}...`);
 
     const newOptimizedImages: string[] = [];
+    const newThumbEntries: Record<string, string> = {};
     for (let i = 0; i < validFiles.length; i++) {
       setProcessingProgress(`Otimizando foto ${i + 1} de ${validFiles.length}...`);
       try {
-        const optimized = await resizeAndOptimizeImage(validFiles[i]);
-        newOptimizedImages.push(optimized);
+        const { large, thumb } = await resizeAndOptimizeImage(validFiles[i]);
+        newOptimizedImages.push(large);
+        newThumbEntries[large] = thumb;
       } catch (err) {
         console.error('Erro ao processar imagem:', err);
       }
@@ -300,6 +318,7 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
         const updated = [...prev, ...newOptimizedImages];
         return updated;
       });
+      setThumbMap((prev) => ({ ...prev, ...newThumbEntries }));
       if (!coverImage) {
         setCoverImage(newOptimizedImages[0]);
       }
@@ -388,6 +407,12 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
   const handleRemoveImage = (imgUrl: string) => {
     const filtered = images.filter((img) => img !== imgUrl);
     setImages(filtered);
+    setThumbMap((prev) => {
+      if (!(imgUrl in prev)) return prev;
+      const next = { ...prev };
+      delete next[imgUrl];
+      return next;
+    });
     if (coverImage === imgUrl && filtered.length > 0) {
       setCoverImage(filtered[0]);
     }
@@ -446,6 +471,8 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
       bathrooms: Number(bathrooms) || 1,
       coverImage: coverImage || images[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
       images: images.length > 0 ? images : [coverImage],
+      thumbnails: (images.length > 0 ? images : [coverImage]).map((img) => thumbMap[img] || img),
+      coverThumbnail: thumbMap[coverImage || images[0]] || undefined,
       amenities,
       badge: badge.trim() || 'Destaque',
       isSuperhost,

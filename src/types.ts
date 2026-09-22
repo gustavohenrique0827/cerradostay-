@@ -62,6 +62,10 @@ export interface Property {
   category: PropertyCategory[];
   coverImage: string;
   images: string[];
+  // Lightweight card/listing thumbnails, parallel to `images` (same order/length).
+  // Client-side only convenience layer — not persisted to the Supabase schema.
+  coverThumbnail?: string;
+  thumbnails?: string[];
   pricePerNight: number;
   cleaningFee: number;
   serviceFeePercentage: number;

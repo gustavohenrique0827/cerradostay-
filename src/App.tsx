@@ -66,9 +66,11 @@ export default function App() {
 
   // Listen for storage events / updates
   useEffect(() => {
-    fetchProperties().then(setProperties);
+    let isActive = true;
+    let subscription: { unsubscribe: () => void } | null = null;
+
     getUnavailabilities().then(setUnavailabilities);
-    
+
     const handleHashChange = () => {
       if (window.location.hash === '#admin') {
         setIsAdminMode(true);
@@ -76,11 +78,19 @@ export default function App() {
     };
     window.addEventListener('hashchange', handleHashChange);
 
-    const subscription = subscribeToProperties(() => {
-      fetchProperties().then(setProperties);
+    // Wait for the initial fetch to resolve Supabase status (active/quota_restricted/offline)
+    // before deciding whether to open a realtime subscription — otherwise, when Supabase is
+    // over quota, the client keeps retrying a doomed WebSocket connection indefinitely.
+    fetchProperties().then((props) => {
+      if (!isActive) return;
+      setProperties(props);
+      subscription = subscribeToProperties(() => {
+        fetchProperties().then(setProperties);
+      });
     });
 
     return () => {
+      isActive = false;
       window.removeEventListener('hashchange', handleHashChange);
       if (subscription) subscription.unsubscribe();
     };

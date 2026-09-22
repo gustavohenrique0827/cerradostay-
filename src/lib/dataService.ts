@@ -497,6 +497,21 @@ export function validateAndSanitizeProperty(raw: any): PropertyValidationResult 
     images = [coverImage];
   }
 
+  // 5b. Thumbnails sanitization (optional, parallel to images — only kept when the count matches,
+  // otherwise a stale/partial thumbnail set would misalign with the wrong photos)
+  let thumbnails: string[] | undefined;
+  if (Array.isArray(raw.thumbnails)) {
+    const cleaned = raw.thumbnails
+      .filter((t: any) => typeof t === 'string' && t.trim().length > 0)
+      .map((t: string) => t.trim());
+    if (cleaned.length === images.length) {
+      thumbnails = cleaned;
+    }
+  }
+  const coverThumbnail = typeof raw.coverThumbnail === 'string' && raw.coverThumbnail.trim().length > 0
+    ? raw.coverThumbnail.trim()
+    : undefined;
+
   // 6. Categories sanitization
   let categories: PropertyCategory[] = [];
   if (Array.isArray(raw.category)) {
@@ -567,6 +582,8 @@ export function validateAndSanitizeProperty(raw: any): PropertyValidationResult 
     category: categories,
     coverImage,
     images,
+    coverThumbnail,
+    thumbnails,
     pricePerNight,
     cleaningFee,
     serviceFeePercentage,

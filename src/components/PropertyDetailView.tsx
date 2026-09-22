@@ -947,7 +947,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
                 >
                   <div className="aspect-[16/10] overflow-hidden">
                     <img
-                      src={simProp.coverImage}
+                      src={simProp.coverThumbnail || simProp.coverImage}
                       alt={simProp.name}
                       loading="lazy"
                       decoding="async"
