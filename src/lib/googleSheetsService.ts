@@ -68,7 +68,7 @@ export function toPublicImageUrl(img: string): string {
     const origin = typeof window !== 'undefined' && window.location.origin && !window.location.origin.includes('localhost')
       ? window.location.origin
       : 'https://cerradostay.com.br';
-    return ;
+    return `${origin}${trimmed}`;
   }
   return trimmed;
 }

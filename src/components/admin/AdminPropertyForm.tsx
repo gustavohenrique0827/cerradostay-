@@ -235,8 +235,8 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
       reader.onload = (readerEvent) => {
         const img = new Image();
         img.onload = () => {
-          const maxWidth = 750;
-          const maxHeight = 550;
+          const maxWidth = 1600;
+          const maxHeight = 1200;
           let width = img.width;
           let height = img.height;
 
@@ -263,8 +263,8 @@ export const AdminPropertyForm: React.FC<AdminPropertyFormProps> = ({
           ctx.imageSmoothingQuality = 'medium';
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Output lightweight web-ready JPEG to prevent localStorage quota exhaustion
-          const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.55);
+          // Output web-ready JPEG (IndexedDB backs storage, so quality no longer needs to be this aggressive)
+          const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
           resolve(optimizedDataUrl);
         };
         img.onerror = () => {

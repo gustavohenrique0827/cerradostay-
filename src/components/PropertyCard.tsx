@@ -171,7 +171,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             </h3>
             <div className="flex items-center gap-1 text-xs font-bold text-neutral-800 shrink-0">
               <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span>{property.rating.toFixed(2)}</span>
+              <span>{Number(property.rating || 5).toFixed(2)}</span>
               <span className="text-neutral-400 font-normal">({property.reviewsCount})</span>
             </div>
           </div>

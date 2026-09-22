@@ -975,9 +975,16 @@ async function tryFetchFromGoogleSheets(): Promise<Property[] | null> {
     if (targetUrl) {
       const sheetProps = await fetchPropertiesFromGoogleSheetsCsv(targetUrl);
       if (sheetProps && Array.isArray(sheetProps) && sheetProps.length > 0) {
-        console.info(`fetchProperties - Carregados ${sheetProps.length} imóveis diretamente da Planilha Google!`);
-        storageEngine.saveProperties(sheetProps);
-        return sheetProps;
+        // Sanitize before use: raw sheet rows may be missing fields (e.g. rating),
+        // and rendering those directly crashes the app (React error boundary trips).
+        const sanitizedProps = sheetProps
+          .map((p) => validateAndSanitizeProperty(p).sanitized)
+          .filter((p): p is Property => !!p);
+        if (sanitizedProps.length > 0) {
+          console.info(`fetchProperties - Carregados ${sanitizedProps.length} imóveis diretamente da Planilha Google!`);
+          storageEngine.saveProperties(sanitizedProps);
+          return sanitizedProps;
+        }
       }
     }
   } catch (sheetErr) {

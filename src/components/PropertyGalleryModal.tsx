@@ -77,6 +77,7 @@ export const PropertyGalleryModal: React.FC<PropertyGalleryModalProps> = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.2 }}
+              decoding="async"
               className="max-h-[72vh] max-w-full object-contain rounded-xl shadow-2xl"
             />
           </AnimatePresence>
@@ -113,7 +114,7 @@ export const PropertyGalleryModal: React.FC<PropertyGalleryModalProps> = ({
                   idx === currentIndex ? 'border-[#C5A059] scale-105 opacity-100 shadow-md' : 'border-transparent opacity-50 hover:opacity-80'
                 }`}
               >
-                <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-cover" />
+                <img src={img} alt={`Miniatura ${idx + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </button>
             ))}
           </div>

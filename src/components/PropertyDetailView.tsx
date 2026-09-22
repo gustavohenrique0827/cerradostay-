@@ -275,7 +275,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
           <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-neutral-600">
             <div className="flex items-center gap-1 font-bold text-[#002147]">
               <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-              <span>{property.rating.toFixed(2)}</span>
+              <span>{Number(property.rating || 5).toFixed(2)}</span>
               <span className="text-neutral-500 font-normal">({property.reviewsCount} avaliações)</span>
             </div>
             <span>·</span>
@@ -297,6 +297,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
               <img
                 src={images[0]}
                 alt={`${property.name} Foto Principal`}
+                decoding="async"
                 className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
@@ -313,6 +314,8 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
                   <img
                     src={img}
                     alt={`${property.name} Foto ${idx + 2}`}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
@@ -629,7 +632,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
                 <div>
                   <h3 className="font-serif font-bold text-2xl text-neutral-900 flex items-center gap-2">
                     <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                    <span>{currentProperty.rating.toFixed(2)} · {(currentProperty.reviews || []).filter((r) => r.status !== 'hidden').length} avaliações</span>
+                    <span>{Number(currentProperty.rating || 5).toFixed(2)} · {(currentProperty.reviews || []).filter((r) => r.status !== 'hidden').length} avaliações</span>
                   </h3>
                   <p className="text-xs text-neutral-500 mt-0.5">Avaliações verificadas de hóspedes da Cerrado Stays</p>
                 </div>
@@ -816,7 +819,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
                 </div>
                 <div className="flex items-center gap-1 text-xs font-bold text-neutral-800">
                   <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                  <span>{property.rating.toFixed(2)}</span>
+                  <span>{Number(property.rating || 5).toFixed(2)}</span>
                   <span className="text-neutral-400 font-normal">({property.reviewsCount})</span>
                 </div>
               </div>
@@ -946,6 +949,8 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
                     <img
                       src={simProp.coverImage}
                       alt={simProp.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
