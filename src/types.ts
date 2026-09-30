@@ -193,8 +193,7 @@ export interface SearchFilterState {
   destination: string;
   checkIn: string | null;
   checkOut: string | null;
-  adults: number;
-  children: number;
-  category: PropertyCategory;
+  guests: { adults: number; children: number };
+  category?: PropertyCategory;
   priceRange?: [number, number];
 }

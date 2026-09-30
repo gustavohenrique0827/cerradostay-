@@ -28,7 +28,7 @@ interface AdminAvailabilityProps {
   properties: Property[];
   selectedPropertyId?: string;
   unavailabilities: PropertyUnavailability[];
-  onAddBlock: (block: Omit<PropertyUnavailability, 'id' | 'createdAt'>) => { success: boolean; error?: string };
+  onAddBlock: (block: Omit<PropertyUnavailability, 'id' | 'createdAt'>) => Promise<{ success: boolean; error?: string }>;
   onRemoveBlock: (id: string) => void;
   onToast: (msg: string, type?: 'success' | 'info' | 'error') => void;
 }
@@ -144,7 +144,7 @@ export const AdminAvailability: React.FC<AdminAvailabilityProps> = ({
   };
 
   // Submit Block Form
-  const handleSaveBlock = (e: React.FormEvent) => {
+  const handleSaveBlock = async (e: React.FormEvent) => {
     e.preventDefault();
     setBlockError(null);
 
@@ -162,7 +162,7 @@ export const AdminAvailability: React.FC<AdminAvailabilityProps> = ({
       ? blockCustomReason.trim()
       : blockReason;
 
-    const res = onAddBlock({
+    const res = await onAddBlock({
       propertyId: activePropertyId,
       startDate: blockStartDate,
       endDate: blockEndDate,
