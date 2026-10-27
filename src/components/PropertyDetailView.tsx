@@ -141,15 +141,28 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
 
   const totalGuests = adults + childrenCount;
 
+  // Builds the direct, shareable link to THIS property (?imovel=<slug>) rather than trusting
+  // window.location.href to already be in sync — this page can be reached through a few
+  // different navigation paths, so computing it from the property itself is more robust.
+  const getPropertyShareUrl = () => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('imovel', property.slug);
+      return url.toString();
+    } catch {
+      return window.location.href;
+    }
+  };
+
   const handleShareWhatsApp = () => {
-    const url = window.location.href;
+    const url = getPropertyShareUrl();
     const text = encodeURIComponent(`Confira este imóvel incrível para nossa próxima estadia: ${property.name} em ${property.city}!\n${url}`);
     openExternalUrl(`https://wa.me/?text=${text}`);
     setShowShareMenu(false);
   };
 
   const handleCopyLink = async () => {
-    await copyToClipboard(window.location.href);
+    await copyToClipboard(getPropertyShareUrl());
     onToast('Link do imóvel copiado para a área de transferência!');
     setShowShareMenu(false);
   };

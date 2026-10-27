@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Property } from '../types';
-import { Star, MapPin, Users, Bed, Bath, Heart, ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
+import { Star, MapPin, Users, Bed, Bath, Heart, Share2, Check, ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { getOptimizedImageUrl } from '../lib/imageUtils';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface PropertyCardProps {
   property: Property;
@@ -50,6 +51,38 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     if (onToggleFavorite) {
       onToggleFavorite(property.id);
     }
+  };
+
+  const [justCopiedShare, setJustCopiedShare] = useState(false);
+
+  const handleShareClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    let shareUrl = window.location.href;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('imovel', property.slug);
+      shareUrl = url.toString();
+    } catch {}
+
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: property.name,
+          text: `Confira este imóvel incrível: ${property.name} em ${property.city}!`,
+          url: shareUrl,
+        });
+      } catch {
+        // User cancelled the native share sheet — not an error, nothing to do.
+      }
+      return;
+    }
+
+    // Desktop fallback: no native share sheet available, so copy the direct link instead.
+    try {
+      await copyToClipboard(shareUrl);
+      setJustCopiedShare(true);
+      setTimeout(() => setJustCopiedShare(false), 2000);
+    } catch {}
   };
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -114,16 +147,31 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
           )}
         </div>
 
-        {/* Favorite Heart Button */}
-        <button
-          type="button"
-          onClick={handleFavoriteClick}
-          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/80 hover:bg-white backdrop-blur-sm flex items-center justify-center text-neutral-700 hover:text-rose-500 transition-all active:scale-90 shadow-xs"
-          title={isFavorite ? 'Remover dos favoritos' : 'Salvar nos favoritos'}
-          aria-label="Favoritar imóvel"
-        >
-          <Heart className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-rose-500 text-rose-500' : 'text-neutral-700'}`} />
-        </button>
+        {/* Favorite & Share Buttons */}
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleShareClick}
+            className="w-8 h-8 rounded-full bg-white/80 hover:bg-white backdrop-blur-sm flex items-center justify-center text-neutral-700 hover:text-[#C5A059] transition-all active:scale-90 shadow-xs"
+            title="Compartilhar imóvel"
+            aria-label="Compartilhar imóvel"
+          >
+            {justCopiedShare ? (
+              <Check className="w-4 h-4 text-emerald-600" />
+            ) : (
+              <Share2 className="w-4 h-4" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={handleFavoriteClick}
+            className="w-8 h-8 rounded-full bg-white/80 hover:bg-white backdrop-blur-sm flex items-center justify-center text-neutral-700 hover:text-rose-500 transition-all active:scale-90 shadow-xs"
+            title={isFavorite ? 'Remover dos favoritos' : 'Salvar nos favoritos'}
+            aria-label="Favoritar imóvel"
+          >
+            <Heart className={`w-4 h-4 transition-colors ${isFavorite ? 'fill-rose-500 text-rose-500' : 'text-neutral-700'}`} />
+          </button>
+        </div>
 
         {/* Carousel Image Controls (if multiple images) */}
         {images.length > 1 && (

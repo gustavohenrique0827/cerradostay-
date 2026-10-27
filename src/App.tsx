@@ -84,6 +84,17 @@ export default function App() {
     fetchProperties().then((props) => {
       if (!isActive) return;
       setProperties(props);
+
+      // Deep link: a shared WhatsApp/copy-link URL carries ?imovel=<slug> — open that
+      // property directly instead of landing on the homepage.
+      try {
+        const slugParam = new URLSearchParams(window.location.search).get('imovel');
+        if (slugParam) {
+          const target = props.find((p) => p.slug === slugParam);
+          if (target) setSelectedProperty(target);
+        }
+      } catch {}
+
       subscription = subscribeToProperties(() => {
         fetchProperties().then(setProperties);
       });
@@ -103,7 +114,41 @@ export default function App() {
 
   // --- Public Navigation & View state ---
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
-  
+
+  // Opens a property AND reflects it in the URL (?imovel=<slug>), so the WhatsApp/copy-link
+  // share buttons and the browser's own URL bar point at the actual listing, not just the
+  // homepage — and so reloading or sharing that link reopens the same property.
+  const selectProperty = (property: Property | null) => {
+    setSelectedProperty(property);
+    try {
+      const url = new URL(window.location.href);
+      if (property) {
+        url.searchParams.set('imovel', property.slug);
+      } else {
+        url.searchParams.delete('imovel');
+      }
+      window.history.pushState({}, '', url.toString());
+    } catch {}
+  };
+
+  // Keep the view in sync with browser back/forward navigation (e.g. the Android back
+  // button), so leaving a shared property link returns to the homepage instead of exiting.
+  useEffect(() => {
+    const handlePopState = () => {
+      try {
+        const slugParam = new URLSearchParams(window.location.search).get('imovel');
+        if (!slugParam) {
+          setSelectedProperty(null);
+          return;
+        }
+        const target = properties.find((p) => p.slug === slugParam);
+        if (target) setSelectedProperty(target);
+      } catch {}
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [properties]);
+
   // Search state
   const [searchFilters, setSearchFilters] = useState<SearchFilterState>({
     destination: '',
@@ -257,7 +302,7 @@ export default function App() {
 
   const handleViewPropertyOnSite = (property: Property) => {
     setIsAdminMode(false);
-    setSelectedProperty(property);
+    selectProperty(property);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -283,7 +328,7 @@ export default function App() {
   const handleSearch = (filters: SearchFilterState) => {
     setSearchFilters(filters);
     if (selectedProperty) {
-      setSelectedProperty(null);
+      selectProperty(null);
     }
     setTimeout(() => {
       const el = document.getElementById('imoveis');
@@ -504,11 +549,11 @@ export default function App() {
 
       {/* Global Navigation Header */}
       <Header
-        onNavigateHome={() => setSelectedProperty(null)}
+        onNavigateHome={() => selectProperty(null)}
         isPropertyDetailOpen={!!selectedProperty}
         favoritesCount={favorites.length}
         onOpenFavorites={() => {
-          if (selectedProperty) setSelectedProperty(null);
+          if (selectedProperty) selectProperty(null);
           setSelectedCategory('favoritos');
           setTimeout(() => {
             const el = document.getElementById('imoveis');
@@ -525,8 +570,8 @@ export default function App() {
       {selectedProperty ? (
         <PropertyDetailView
           property={selectedProperty}
-          onBack={() => setSelectedProperty(null)}
-          onSelectProperty={(prop) => setSelectedProperty(prop)}
+          onBack={() => selectProperty(null)}
+          onSelectProperty={(prop) => selectProperty(prop)}
           allProperties={properties.filter((p) => p.status !== 'inactive')}
           isFavorite={favorites.includes(selectedProperty.id)}
           onToggleFavorite={handleToggleFavorite}
@@ -630,8 +675,8 @@ export default function App() {
                   >
                     <PropertyCard
                       property={property}
-                      onSelect={(prop) => setSelectedProperty(prop)}
-                      onSelectProperty={(prop) => setSelectedProperty(prop)}
+                      onSelect={(prop) => selectProperty(prop)}
+                      onSelectProperty={(prop) => selectProperty(prop)}
                       isFavorite={favorites.includes(property.id)}
                       onToggleFavorite={handleToggleFavorite}
                     />
