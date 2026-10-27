@@ -47,6 +47,17 @@ import { AdminSettings } from './components/admin/AdminSettings';
 import { Property, PropertyCategory, SearchFilterState, PropertyUnavailability } from './types';
 import { Sparkles, SlidersHorizontal, RotateCcw, AlertCircle } from 'lucide-react';
 
+// Generated slugs only ever contain lowercase letters, digits and hyphens (see generateSlug
+// in dataService.ts). Some share targets (WhatsApp, Android's share sheet, etc.) flatten the
+// title/text/url fields into one string with no separator when forwarded or copied, so a
+// shared link can arrive as "?imovel=<real-slug> Confira este imóvel incrível: ...". Extracting
+// just the leading valid-slug run makes the deep link work anyway instead of silently failing
+// an exact match and falling back to the homepage.
+function extractSlugFromParam(raw: string | null): string | null {
+  if (!raw) return null;
+  const match = raw.match(/^[a-z0-9-]+/i);
+  return match ? match[0].toLowerCase() : null;
+}
 
 export default function App() {
   // --- Admin Mode & Auth State ---
@@ -88,9 +99,9 @@ export default function App() {
       // Deep link: a shared WhatsApp/copy-link URL carries ?imovel=<slug> — open that
       // property directly instead of landing on the homepage.
       try {
-        const slugParam = new URLSearchParams(window.location.search).get('imovel');
-        if (slugParam) {
-          const target = props.find((p) => p.slug === slugParam);
+        const slug = extractSlugFromParam(new URLSearchParams(window.location.search).get('imovel'));
+        if (slug) {
+          const target = props.find((p) => p.slug === slug);
           if (target) setSelectedProperty(target);
         }
       } catch {}
@@ -136,12 +147,12 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       try {
-        const slugParam = new URLSearchParams(window.location.search).get('imovel');
-        if (!slugParam) {
+        const slug = extractSlugFromParam(new URLSearchParams(window.location.search).get('imovel'));
+        if (!slug) {
           setSelectedProperty(null);
           return;
         }
-        const target = properties.find((p) => p.slug === slugParam);
+        const target = properties.find((p) => p.slug === slug);
         if (target) setSelectedProperty(target);
       } catch {}
     };

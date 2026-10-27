@@ -154,6 +154,26 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
     }
   };
 
+  // Tries the OS-native share sheet first (most reliable on Android/iOS — a single tap,
+  // no popup blockers, no WhatsApp-Web login requirement) and only falls back to the
+  // WhatsApp-link/copy-link dropdown when navigator.share isn't available on this browser.
+  const handleShareClick = async () => {
+    const url = getPropertyShareUrl();
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: property.name,
+          text: `Confira este imóvel incrível para nossa próxima estadia: ${property.name} em ${property.city}!`,
+          url,
+        });
+      } catch {
+        // User cancelled the native share sheet — not an error, nothing to do.
+      }
+      return;
+    }
+    setShowShareMenu((prev) => !prev);
+  };
+
   const handleShareWhatsApp = () => {
     const url = getPropertyShareUrl();
     const text = encodeURIComponent(`Confira este imóvel incrível para nossa próxima estadia: ${property.name} em ${property.city}!\n${url}`);
@@ -224,7 +244,7 @@ export const PropertyDetailView: React.FC<PropertyDetailViewProps> = ({
             {/* Share Button & Popover */}
             <div className="relative">
               <button
-                onClick={() => setShowShareMenu(!showShareMenu)}
+                onClick={handleShareClick}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold bg-white hover:bg-neutral-50 text-neutral-700 px-3.5 py-2 rounded-full border border-[#DEE2E6] transition-colors"
                 id="share-property-btn"
               >
